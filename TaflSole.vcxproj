@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="board.h" />
+    <ClInclude Include="constants.h" />
     <ClInclude Include="history.h" />
     <ClInclude Include="logic.h" />
     <ClInclude Include="positionChecks.h" />

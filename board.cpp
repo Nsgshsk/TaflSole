@@ -1,21 +1,6 @@
 #include "board.h"
 #include "positionChecks.h"
-
-enum BoardSizes
-{
-	SMALL = 9,
-	MEDIUM = 11,
-	BIG = 13
-};
-
-enum BoardChars
-{
-	EMPTY_SPACE = '-',
-	ATTACKER = 'A',
-	DEFENDER = 'D',
-	KING = 'K',
-	END_POINT = 'X'
-};
+#include "constants.h"
 
 void allocateBoardMemory(Board& board, size_t size)
 {
@@ -35,40 +20,40 @@ void unallocateBoardMemory(Board board, size_t size)
 	delete[] board;
 }
 
-bool isAttackersStartingPosition(size_t row, size_t col, size_t size)
+bool isAttackersStartingPosition(size_t row, size_t col, size_t boardSize)
 {
-	size_t middle = size / 2;
+	size_t middle = boardSize / 2;
 	
-	if (row == 0 || row == size - 1)
-		return col > 2 && col < size - 3;
+	if (row == 0 || row == boardSize - 1)
+		return col > 2 && col < boardSize - 3;
 
-	else if (row == 1 || row == size - 2)
+	else if (row == 1 || row == boardSize - 2)
 		return col == middle;
 
-	else if (col == 0 || col == size - 1)
-		return row > 2 && row < size - 3;
+	else if (col == 0 || col == boardSize - 1)
+		return row > 2 && row < boardSize - 3;
 
-	else if (col == 1 || col == size - 2)
+	else if (col == 1 || col == boardSize - 2)
 		return row == middle;
 
 	return false;
 }
 
-bool isDefendersStartingPosition(size_t row, size_t col, size_t size)
+bool isDefendersStartingPosition(size_t row, size_t col, size_t boardSize)
 {
-	size_t middle = size / 2;
+	size_t middle = boardSize / 2;
 	bool result = false;
 
 	if (row == col && row == middle)
 		return false;
 
-	switch (size)
+	switch (boardSize)
 	{
 		case SMALL:
-			if (row >= 2 && row <= size - 3)
+			if (row >= 2 && row <= boardSize - 3)
 				result = result || col == middle;
 
-			if (col >= 2 && col <= size - 3)
+			if (col >= 2 && col <= boardSize - 3)
 				result = result || row == middle;
 			break;
 
@@ -83,10 +68,10 @@ bool isDefendersStartingPosition(size_t row, size_t col, size_t size)
 				result = result || true;
 
 		case BIG:
-			if (row > 2 && row < size - 3)
+			if (row > 2 && row < boardSize - 3)
 				result = result || col == middle;
 
-			if (col > 2 && col < size - 3)
+			if (col > 2 && col < boardSize - 3)
 				result = result || row == middle;
 			break;
 	}
@@ -151,4 +136,22 @@ bool newBoard(Board& board, size_t oldSize, size_t newSize)
 void closeBoard(Board board, size_t size)
 {
 	unallocateBoardMemory(board, size);
+}
+
+bool changeCell(Board board, size_t size, size_t row, size_t col, char cellType)
+{
+	if (isOutOfBounds(row, col, size))
+		return false;
+
+	board[row][col] = cellType;
+
+	return true;
+}
+
+char typeOfCell(Board board, size_t size, size_t row, size_t col)
+{
+	if (isOutOfBounds(row, col, size))
+		return -1;
+
+	return board[row][col];
 }
