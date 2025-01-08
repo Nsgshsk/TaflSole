@@ -8,4 +8,4 @@ void closeBoard(Board board, size_t size);
 
 bool changeCell(Board board, size_t size, size_t row, size_t col, char cellType);
 
-char typeOfCell(Board board, size_t size, size_t row, size_t col);
+char typeOfCell(Board const board, size_t size, size_t row, size_t col);

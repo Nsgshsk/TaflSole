@@ -63,6 +63,27 @@ bool isTakenCell(Board board, size_t size, Position* move)
 	return isTakenCell(board, size, move->x, move->y);
 }
 
+bool inMovementBounds(size_t boardSize, size_t pieceRow, size_t pieceCol, size_t row, size_t col)
+{
+	if (isOutOfBounds(boardSize, pieceRow, pieceCol))
+		return false;
+	if (isOutOfBounds(boardSize, row, col))
+		return false;
+
+	if (pieceRow == row)
+		return true;
+
+	if (pieceCol == col)
+		return true;
+
+	return false;
+}
+
+bool inMovementBounds(size_t boardSize, Position* piece, Position* move)
+{
+	return inMovementBounds(boardSize, piece->x, piece->y, move->x, move->y);
+}
+
 bool isValidMove(Board board, size_t size, char pieceType, Position* move)
 {
 	if (isOutOfBounds(size, move->x, move->y))
@@ -101,10 +122,23 @@ bool isCaptured(Board board, size_t size, char pieceType, Position* piece)
 
 		case KING:
 			return isEnemy1 && isEnemy3 && isEnemy2 && isEnemy4;
-
 	}
 
 	return false;
+}
+
+bool capturePiece(Board board, size_t size, size_t row, size_t col)
+{
+	if (isOutOfBounds(size, row, col))
+		return false;
+
+	changeCell(board, size, row, col, EMPTY_SPACE);
+	return true;
+}
+
+bool capturePiece(Board board, size_t size, Position* move)
+{
+	return capturePiece(board, size, move->x, move->y);
 }
 
 bool movePiece(Board board, Position* piece, Position* move)

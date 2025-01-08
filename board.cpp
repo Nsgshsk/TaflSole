@@ -148,7 +148,7 @@ bool changeCell(Board board, size_t size, size_t row, size_t col, char cellType)
 	return true;
 }
 
-char typeOfCell(Board board, size_t size, size_t row, size_t col)
+char typeOfCell(Board const board, size_t size, size_t row, size_t col)
 {
 	if (isOutOfBounds(row, col, size))
 		return -1;
