@@ -20,10 +20,10 @@ void unallocateBoardMemory(Board board, size_t size)
 	delete[] board;
 }
 
-bool isAttackersStartingPosition(size_t row, size_t col, size_t boardSize)
+bool isAttackersStartingPosition(size_t boardSize, size_t row, size_t col)
 {
 	size_t middle = boardSize / 2;
-	
+
 	if (row == 0 || row == boardSize - 1)
 		return col > 2 && col < boardSize - 3;
 
@@ -39,7 +39,7 @@ bool isAttackersStartingPosition(size_t row, size_t col, size_t boardSize)
 	return false;
 }
 
-bool isDefendersStartingPosition(size_t row, size_t col, size_t boardSize)
+bool isDefendersStartingPosition(size_t boardSize, size_t row, size_t col)
 {
 	size_t middle = boardSize / 2;
 	bool result = false;
@@ -49,31 +49,31 @@ bool isDefendersStartingPosition(size_t row, size_t col, size_t boardSize)
 
 	switch (boardSize)
 	{
-		case SMALL:
-			if (row >= 2 && row <= boardSize - 3)
-				result = result || col == middle;
+	case SMALL:
+		if (row >= 2 && row <= boardSize - 3)
+			result = result || col == middle;
 
-			if (col >= 2 && col <= boardSize - 3)
-				result = result || row == middle;
-			break;
+		if (col >= 2 && col <= boardSize - 3)
+			result = result || row == middle;
+		break;
 
-		case MEDIUM:
-			if (row == col)
-				result = result || row == middle - 1 || row == middle + 1;
+	case MEDIUM:
+		if (row == col)
+			result = result || row == middle - 1 || row == middle + 1;
 
-			if (row == middle - 1 && col == middle + 1)
-				result = result || true;
+		if (row == middle - 1 && col == middle + 1)
+			result = result || true;
 
-			if (row == middle + 1 && col == middle - 1)
-				result = result || true;
+		if (row == middle + 1 && col == middle - 1)
+			result = result || true;
 
-		case BIG:
-			if (row > 2 && row < boardSize - 3)
-				result = result || col == middle;
+	case BIG:
+		if (row > 2 && row < boardSize - 3)
+			result = result || col == middle;
 
-			if (col > 2 && col < boardSize - 3)
-				result = result || row == middle;
-			break;
+		if (col > 2 && col < boardSize - 3)
+			result = result || row == middle;
+		break;
 	}
 	return result;
 }

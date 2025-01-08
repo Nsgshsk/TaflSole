@@ -1,7 +1,7 @@
 #pragma once
 
-bool isOutOfBounds(size_t row, size_t col, size_t size);
+bool isOutOfBounds(size_t boardSize, size_t row, size_t col);
 
-bool isCorner(size_t row, size_t col, size_t size);
+bool isCorner(size_t boardSize, size_t row, size_t col);
 
-bool isKingStartingPosition(size_t row, size_t col, size_t size);
+bool isKingStartingPosition(size_t boardSize, size_t row, size_t col);

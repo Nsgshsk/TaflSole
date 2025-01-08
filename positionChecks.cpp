@@ -1,29 +1,29 @@
 #include "positionChecks.h"
 
-bool isOutOfBounds(size_t row, size_t col, size_t size)
+bool isOutOfBounds(size_t boardSize, size_t row, size_t col)
 {
-	if (row < 0 || row >= size)
+	if (row < 0 || row >= boardSize)
 		return true;
 
-	else if (col < 0 || col >= size)
+	else if (col < 0 || col >= boardSize)
 		return true;
 
 	return false;
 }
 
-bool isCorner(size_t row, size_t col, size_t size)
+bool isCorner(size_t boardSize, size_t row, size_t col)
 {
 	if (row == 0)
-		return col == 0 || col == size - 1;
+		return col == 0 || col == boardSize - 1;
 
-	else if (row == size - 1)
-		return col == 0 || col == size - 1;
+	else if (row == boardSize - 1)
+		return col == 0 || col == boardSize - 1;
 
 	return false;
 }
 
-bool isKingStartingPosition(size_t row, size_t col, size_t size)
+bool isKingStartingPosition(size_t boardSize, size_t row, size_t col)
 {
-	size_t middle = size / 2;
+	size_t middle = boardSize / 2;
 	return row == middle && col == middle;
 }
