@@ -125,10 +125,10 @@ bool isCaptured(Board board, size_t size, char pieceType, Position* piece)
 	{
 		case ATTACKER:
 		case DEFENDER:
-			return isEnemyArr[0] && isEnemyArr[2] || isEnemyArr[1] && isEnemyArr[4];
+			return isEnemyArr[0] && isEnemyArr[2] || isEnemyArr[1] && isEnemyArr[3];
 
 		case KING:
-			return isEnemyArr[0] && isEnemyArr[2] && isEnemyArr[1] && isEnemyArr[4];
+			return isEnemyArr[0] && isEnemyArr[2] && isEnemyArr[1] && isEnemyArr[3];
 	}
 
 	return false;
