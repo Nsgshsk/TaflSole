@@ -4,6 +4,8 @@
 #include "history.h"
 #include "positionChecks.h"
 
+const size_t ARRAY_SIZE = 4;
+
 bool isKingOnlyCell(size_t boardSize, size_t row, size_t col)
 {
 	if (isKingStartingPosition(boardSize, row, col))
@@ -52,10 +54,7 @@ bool isTakenCell(Board board, size_t size, size_t row, size_t col)
 
 	char cellType = typeOfCell(board, size, row, col);
 
-	if (cellType == EMPTY_SPACE)
-		return true;
-
-	return false;
+	return cellType != EMPTY_SPACE && cellType != END_POINT;
 }
 
 bool isTakenCell(Board board, size_t size, Position* move)
@@ -100,28 +99,36 @@ bool isValidMove(Board board, size_t size, char pieceType, Position* move)
 	return false;
 }
 
+void fillIsEnemyArr(Board board, size_t size, char pieceType, Position* piece, bool isEnemyArr[ARRAY_SIZE])
+{
+	// row += 1, col += 0
+	isEnemyArr[0] = isEnemyCell(board, size, pieceType, piece->x + 1, piece->y);
+	// row += 0, col += 1
+	isEnemyArr[1] = isEnemyCell(board, size, pieceType, piece->x, piece->y + 1);
+	// row += -1, col += 0
+	isEnemyArr[2] = isEnemyCell(board, size, pieceType, piece->x - 1, piece->y);
+	// row += 0, col += -1
+	isEnemyArr[3] = isEnemyCell(board, size, pieceType, piece->x, piece->y - 1);
+}
+
 bool isCaptured(Board board, size_t size, char pieceType, Position* piece)
 {
+
 	if (isOutOfBounds(size, piece->x, piece->y))
 		return false;
-
-	// row += 1, col += 0
-	bool isEnemy1 = isEnemyCell(board, size, pieceType, piece->x + 1, piece->y);
-	// row += 0, col += 1
-	bool isEnemy2 = isEnemyCell(board, size, pieceType, piece->x, piece->y + 1);
-	// row += -1, col += 0
-	bool isEnemy3 = isEnemyCell(board, size, pieceType, piece->x - 1, piece->y);
-	// row += 0, col += -1
-	bool isEnemy4 = isEnemyCell(board, size, pieceType, piece->x, piece->y - 1);
+	
+	// Boolean array to store the information is the neighbouring piece an enemy
+	bool isEnemyArr[ARRAY_SIZE]{};
+	fillIsEnemyArr(board, size, pieceType, piece, isEnemyArr);
 
 	switch (pieceType)
 	{
 		case ATTACKER:
 		case DEFENDER:
-			return isEnemy1 && isEnemy3 || isEnemy2 && isEnemy4;
+			return isEnemyArr[0] && isEnemyArr[2] || isEnemyArr[1] && isEnemyArr[4];
 
 		case KING:
-			return isEnemy1 && isEnemy3 && isEnemy2 && isEnemy4;
+			return isEnemyArr[0] && isEnemyArr[2] && isEnemyArr[1] && isEnemyArr[4];
 	}
 
 	return false;
@@ -136,12 +143,77 @@ bool capturePiece(Board board, size_t size, size_t row, size_t col)
 	return true;
 }
 
-bool capturePiece(Board board, size_t size, Position* move)
+bool capturePiece(Board board, size_t size, Position* piece)
 {
-	return capturePiece(board, size, move->x, move->y);
+	return capturePiece(board, size, piece->x, piece->y);
 }
 
-bool movePiece(Board board, Position* piece, Position* move)
+bool movePiece(Board board, size_t size, Position* piece, Position* move, char &pieceType)
 {
+	if (isOutOfBounds(size, move->x, move->y))
+		return false;
 
+	pieceType = typeOfCell(board, size, piece->x, piece->y);
+
+	if (!isValidMove(board, size, pieceType, move))
+		return false;
+
+	return changeCell(board, size, move->x, move->y, pieceType);
+}
+
+bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move)
+{
+	char pieceType = -1;
+	if (!movePiece(board, size, piece, move, pieceType))
+		return false;
+
+	// Boolean array to store the information is the neighbouring piece an enemy
+	bool isEnemyArr[ARRAY_SIZE]{};
+	fillIsEnemyArr(board, size, pieceType, move, isEnemyArr);
+
+	Position* taken = nullptr;
+	size_t takenSize = 0;
+	for (size_t i = 0; i < ARRAY_SIZE; i++)
+	{
+		if (isEnemyArr[i])
+			takenSize++;
+	}
+
+	if (takenSize > 0)
+	{
+		size_t takenIndex = 0;
+		taken = new Position[takenSize];
+		char enemyType = pieceType == ATTACKER ? DEFENDER : ATTACKER;
+		for (size_t i = 0; i < ARRAY_SIZE; i++)
+		{
+			if (isEnemyArr[i])
+			{
+				Position enemy = *move;
+				switch (i)
+				{
+					case 0:
+						move->x += 1;
+						break;
+					case 1:
+						move->y += 1;
+						break;
+					case 2:
+						move->x -= 1;
+						break;
+					case 3:
+						move->y -= 1;
+						break;
+				}
+				if (isCaptured(board, size, enemyType, &enemy))
+				{
+					capturePiece(board, size, &enemy);
+					taken[takenIndex] = enemy;
+				}
+			}
+		}
+		saveMove(history, piece, move, taken, takenSize);
+	}
+
+	saveMove(history, piece, move);
+	return true;
 }
