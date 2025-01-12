@@ -113,7 +113,6 @@ void fillIsEnemyArr(Board board, size_t size, char pieceType, Position* piece, b
 
 bool isCaptured(Board board, size_t size, char pieceType, Position* piece)
 {
-
 	if (isOutOfBounds(size, piece->x, piece->y))
 		return false;
 	
@@ -139,8 +138,7 @@ bool capturePiece(Board board, size_t size, size_t row, size_t col)
 	if (isOutOfBounds(size, row, col))
 		return false;
 
-	changeCell(board, size, row, col, EMPTY_SPACE);
-	return true;
+	return changeCell(board, size, row, col, EMPTY_SPACE);
 }
 
 bool capturePiece(Board board, size_t size, Position* piece)
@@ -161,6 +159,43 @@ bool movePiece(Board board, size_t size, Position* piece, Position* move, char &
 	return changeCell(board, size, move->x, move->y, pieceType);
 }
 
+bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize, 
+	bool isEnemyArr[ARRAY_SIZE], char pieceType, Position* move)
+{
+	size_t takenIndex = 0;
+	taken = new Position[takenSize];
+	char enemyType = pieceType == ATTACKER ? DEFENDER : ATTACKER;
+	for (size_t i = 0; i < ARRAY_SIZE; i++)
+	{
+		if (isEnemyArr[i])
+		{
+			Position enemy = *move;
+			switch (i)
+			{
+			case 0:
+				move->x += 1;
+				break;
+			case 1:
+				move->y += 1;
+				break;
+			case 2:
+				move->x -= 1;
+				break;
+			case 3:
+				move->y -= 1;
+				break;
+			}
+			if (isCaptured(board, size, enemyType, &enemy))
+			{
+				if (!capturePiece(board, size, &enemy))
+					return false;
+				taken[takenIndex] = enemy;
+			}
+		}
+	}
+	return true;
+}
+
 bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move)
 {
 	char pieceType = -1;
@@ -179,39 +214,10 @@ bool moveOperation(HistoryStack& history, Board board, size_t size, Position* pi
 			takenSize++;
 	}
 
-	if (takenSize > 0)
+	if (takenSize > 0 && fillTakenArr(board, size, taken, takenSize, isEnemyArr, pieceType, move))
 	{
-		size_t takenIndex = 0;
-		taken = new Position[takenSize];
-		char enemyType = pieceType == ATTACKER ? DEFENDER : ATTACKER;
-		for (size_t i = 0; i < ARRAY_SIZE; i++)
-		{
-			if (isEnemyArr[i])
-			{
-				Position enemy = *move;
-				switch (i)
-				{
-					case 0:
-						move->x += 1;
-						break;
-					case 1:
-						move->y += 1;
-						break;
-					case 2:
-						move->x -= 1;
-						break;
-					case 3:
-						move->y -= 1;
-						break;
-				}
-				if (isCaptured(board, size, enemyType, &enemy))
-				{
-					capturePiece(board, size, &enemy);
-					taken[takenIndex] = enemy;
-				}
-			}
-		}
 		saveMove(history, piece, move, taken, takenSize);
+		return true;
 	}
 
 	saveMove(history, piece, move);
