@@ -128,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="board.cpp" />
+    <ClCompile Include="game.cpp" />
     <ClCompile Include="history.cpp" />
     <ClCompile Include="logic.cpp" />
     <ClCompile Include="positionChecks.cpp" />
