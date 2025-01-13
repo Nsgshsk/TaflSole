@@ -6,8 +6,15 @@ using std::cin;
 using std::cout;
 using std::endl;
 
+struct Position
+{
+	size_t x, y;
+};
+
 struct GameInfo
 {
+	bool isGameOver;
+	size_t boardSize;
 	Board board;
 	size_t AttackersScore;
 	size_t DeffendersScore;
@@ -35,4 +42,20 @@ void printBoard(const Board board, size_t size)
 		cout << ch << ' ';
 	}
 	cout << endl;
+}
+
+// in progress
+bool moveCommand(GameInfo* gameInfo)
+{
+	Position piece{};
+	cin >> piece.x >> piece.y;
+
+	Position move{};
+	cin >> move.x >> move.y;
+
+	while (!moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, &piece, &move, gameInfo->isGameOver))
+	{
+		cin >> piece.x >> piece.y;
+		cin >> move.x >> move.y;
+	}
 }

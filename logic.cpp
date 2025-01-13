@@ -7,6 +7,9 @@
 const size_t ARRAY_SIZE = 4;
 const size_t ENEMY_TYPE_ARRAY_SIZE = 2;
 
+struct Position;
+struct MoveNode;
+
 bool isKingOnlyCell(size_t boardSize, size_t row, size_t col)
 {
 	if (isKingStartingPosition(boardSize, row, col))
