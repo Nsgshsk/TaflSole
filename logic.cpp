@@ -5,6 +5,7 @@
 #include "positionChecks.h"
 
 const size_t ARRAY_SIZE = 4;
+const size_t ENEMY_TYPE_ARRAY_SIZE = 2;
 
 bool isKingOnlyCell(size_t boardSize, size_t row, size_t col)
 {
@@ -159,12 +160,27 @@ bool movePiece(Board board, size_t size, Position* piece, Position* move, char &
 	return changeCell(board, size, move->x, move->y, pieceType);
 }
 
+void fillEnemyTypeArr(char pieceType, char enemyType[ENEMY_TYPE_ARRAY_SIZE])
+{
+	switch (pieceType)
+	{
+		case ATTACKER:
+			enemyType[1] = KING;
+		case DEFENDER:
+		case KING:
+			enemyType[0] = pieceType == ATTACKER ? DEFENDER : ATTACKER;
+			break;
+	}
+}
+
 bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize, 
-	bool isEnemyArr[ARRAY_SIZE], char pieceType, Position* move)
+	bool isEnemyArr[ARRAY_SIZE], char pieceType, Position* move, bool& isGameOver)
 {
 	size_t takenIndex = 0;
 	taken = new Position[takenSize];
-	char enemyType = pieceType == ATTACKER ? DEFENDER : ATTACKER;
+	char enemyType[ENEMY_TYPE_ARRAY_SIZE]{};
+	fillEnemyTypeArr(pieceType, enemyType);
+
 	for (size_t i = 0; i < ARRAY_SIZE; i++)
 	{
 		if (isEnemyArr[i])
@@ -172,35 +188,55 @@ bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize,
 			Position enemy = *move;
 			switch (i)
 			{
-			case 0:
-				move->x += 1;
-				break;
-			case 1:
-				move->y += 1;
-				break;
-			case 2:
-				move->x -= 1;
-				break;
-			case 3:
-				move->y -= 1;
-				break;
+				case 0:
+					move->x += 1;
+					break;
+				case 1:
+					move->y += 1;
+					break;
+				case 2:
+					move->x -= 1;
+					break;
+				case 3:
+					move->y -= 1;
+					break;
 			}
-			if (isCaptured(board, size, enemyType, &enemy))
+			for (size_t i = 0; i < ENEMY_TYPE_ARRAY_SIZE; i++)
 			{
-				if (!capturePiece(board, size, &enemy))
-					return false;
-				taken[takenIndex] = enemy;
+				if (isCaptured(board, size, enemyType[i], &enemy))
+				{
+					if (enemyType[i] == KING)
+						isGameOver = true;
+
+					if (!capturePiece(board, size, &enemy))
+						return false;
+					taken[takenIndex] = enemy;
+				}
+
+				if (enemyType[1] != KING)
+					break;
 			}
 		}
 	}
 	return true;
 }
 
-bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move)
+bool isGameOverCondition(size_t boardSize, Position* move)
 {
-	char pieceType = -1;
+	if (isOutOfBounds(boardSize, move->x, move->y))
+		return false;
+
+	return isCorner(boardSize, move->x, move->y);
+}
+
+bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move, bool& isGameOver)
+{
+	char pieceType;
 	if (!movePiece(board, size, piece, move, pieceType))
 		return false;
+
+	if (isGameOverCondition(size, move))
+		isGameOver = true;
 
 	// Boolean array to store the information is the neighbouring piece an enemy
 	bool isEnemyArr[ARRAY_SIZE]{};
@@ -214,7 +250,7 @@ bool moveOperation(HistoryStack& history, Board board, size_t size, Position* pi
 			takenSize++;
 	}
 
-	if (takenSize > 0 && fillTakenArr(board, size, taken, takenSize, isEnemyArr, pieceType, move))
+	if (takenSize > 0 && fillTakenArr(board, size, taken, takenSize, isEnemyArr, pieceType, move, isGameOver))
 	{
 		saveMove(history, piece, move, taken, takenSize);
 		return true;
