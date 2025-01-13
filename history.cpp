@@ -1,22 +1,5 @@
 #include "history.h"
 
-// History stack node
-struct MoveNode
-{
-	// An array of positions of taken pieces
-	size_t takenSize;
-	Position* taken;
-
-	// Previous piece position
-	Position* piece;
-
-	// Move position
-	Position* move;
-
-	// Previous move
-	MoveNode* previous;
-};
-
 MoveNode* createMoveNode(Position* piece, Position* move)
 {
 	MoveNode* newNode = new MoveNode;
@@ -57,6 +40,9 @@ void push(HistoryStack& history, MoveNode* move)
 // Standard pop stack function - returns a pointer to the backed move
 MoveNode* pop(HistoryStack& history)
 {
+	if (history == nullptr)
+		return nullptr;
+
 	HistoryStack backedMove = history;
 	history = backedMove->previous;
 

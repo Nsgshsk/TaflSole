@@ -223,3 +223,32 @@ bool moveOperation(HistoryStack& history, Board board, size_t size, Position* pi
 	saveMove(history, piece, move);
 	return true;
 }
+
+bool backOperation(HistoryStack& history, Board board, size_t size, bool player, size_t& playerScore)
+{
+	MoveNode* previous = backMove(history);
+	if (previous == nullptr)
+		return false;
+
+	char pieceType = player ? DEFENDER : ATTACKER;
+
+	Position* working = previous->move;
+	changeCell(board, size, working->x, working->y, EMPTY_SPACE);
+
+	working = previous->piece;
+	changeCell(board, size, working->x, working->y, pieceType);
+
+	if (previous->takenSize > 0)
+	{
+		pieceType = !player ? DEFENDER : ATTACKER;
+		working = previous->taken;
+		for (size_t i = 0; i < previous->takenSize; i++)
+		{
+			changeCell(board, size, working[i].x, working[i].y, pieceType);
+		}
+		playerScore -= previous->takenSize;
+	}
+
+	deleteMoveNode(previous);
+	return true;
+}
