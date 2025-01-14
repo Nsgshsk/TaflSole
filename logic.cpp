@@ -269,9 +269,8 @@ bool backOperation(HistoryStack& history, Board board, size_t size, bool player,
 	if (previous == nullptr)
 		return false;
 
-	char pieceType = player ? DEFENDER : ATTACKER;
-
 	Position* working = previous->move;
+	char pieceType = typeOfCell(board, size, working->x, working->y);
 	changeCell(board, size, working->x, working->y, EMPTY_SPACE);
 
 	working = previous->piece;

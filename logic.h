@@ -1,6 +1,10 @@
 #pragma once
 
-struct Position;
+struct Position
+{
+	size_t x, y;
+};
+
 struct MoveNode;
 
 typedef MoveNode* HistoryStack;
