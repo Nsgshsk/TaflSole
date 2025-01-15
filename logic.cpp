@@ -7,8 +7,18 @@
 const size_t ARRAY_SIZE = 4;
 const size_t ENEMY_TYPE_ARRAY_SIZE = 2;
 
-struct Position;
-struct MoveNode;
+Position* createPosition(size_t x, size_t y)
+{
+	Position* pos = new Position;
+	pos->x = x;
+	pos->y = y;
+	return pos;
+}
+
+void deletePosition(Position* pos)
+{
+	delete pos;
+}
 
 bool isKingOnlyCell(size_t boardSize, size_t row, size_t col)
 {
@@ -44,6 +54,7 @@ bool isEnemyCell(Board board, size_t size, char pieceType, size_t row, size_t co
 				return true;
 			return moveCell == DEFENDER || moveCell == KING;
 	}
+	return true;
 }
 
 bool isEnemyCell(Board board, size_t size, char pieceType, Position* move)
@@ -66,7 +77,7 @@ bool isTakenCell(Board board, size_t size, Position* move)
 	return isTakenCell(board, size, move->x, move->y);
 }
 
-bool inMovementBounds(size_t boardSize, size_t pieceRow, size_t pieceCol, size_t row, size_t col)
+bool isMovementInBounds(size_t boardSize, size_t pieceRow, size_t pieceCol, size_t row, size_t col)
 {
 	if (isOutOfBounds(boardSize, pieceRow, pieceCol))
 		return false;
@@ -82,12 +93,12 @@ bool inMovementBounds(size_t boardSize, size_t pieceRow, size_t pieceCol, size_t
 	return false;
 }
 
-bool inMovementBounds(size_t boardSize, Position* piece, Position* move)
+bool isMovementInBounds(size_t boardSize, Position* piece, Position* move)
 {
-	return inMovementBounds(boardSize, piece->x, piece->y, move->x, move->y);
+	return isMovementInBounds(boardSize, piece->x, piece->y, move->x, move->y);
 }
 
-bool isValidMove(Board board, size_t size, char pieceType, Position* move)
+bool isValidMove(Board board, size_t size, char pieceType, Position* piece, Position* move)
 {
 	if (isOutOfBounds(size, move->x, move->y))
 		return false;
@@ -97,7 +108,8 @@ bool isValidMove(Board board, size_t size, char pieceType, Position* move)
 		case KING:
 		case DEFENDER:
 		case ATTACKER:
-			return !isTakenCell(board, size, move) && !isEnemyCell(board, size, pieceType, move);
+			return !isTakenCell(board, size, move) && !isEnemyCell(board, size, pieceType, move) 
+				&& isMovementInBounds(size, piece, move);
 	}
 
 	return false;
@@ -157,10 +169,11 @@ bool movePiece(Board board, size_t size, Position* piece, Position* move, char &
 
 	pieceType = typeOfCell(board, size, piece->x, piece->y);
 
-	if (!isValidMove(board, size, pieceType, move))
+	if (!isValidMove(board, size, pieceType, piece, move))
 		return false;
 
-	return changeCell(board, size, move->x, move->y, pieceType);
+	bool result = changeCell(board, size, move->x, move->y, pieceType);
+	return result && changeCell(board, size, piece->x, piece->y, EMPTY_SPACE);
 }
 
 void fillEnemyTypeArr(char pieceType, char enemyType[ENEMY_TYPE_ARRAY_SIZE])

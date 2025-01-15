@@ -7,7 +7,8 @@ using std::cout;
 using std::endl;
 
 const size_t INPUT_ARRAY_SIZE = 32;
-const char SEPARATOR = ' ';
+const char ARGUMENT_SEPARATOR = ' ';
+const char TYPE_SEPARATOR = 'x';
 
 const char* MENU_MESSAGE = "1) NewGame <board type>\nBoard types: 9x9, 11x11, 13x13\n2) Quit\n";
 const char* GAME_MESSAGE = "1) Move <piece position> <move position>\n2) Back\n3) Info\n4) ";
@@ -67,12 +68,7 @@ GameInfo* allocateGameInfoMemory()
 
 void deallocateGameInfoMemory(GameInfo* gameInfo)
 {
-	delete &gameInfo->isGameOver;
-	delete &gameInfo->player;
 	closeBoard(gameInfo->board, gameInfo->boardSize);
-	delete &gameInfo->boardSize;
-	delete &gameInfo->AttackersScore;
-	delete &gameInfo->DeffendersScore;
 	deallocateHistoryStackMemory(gameInfo->history);
 	delete gameInfo;
 }
@@ -106,6 +102,7 @@ void fillSplitArr(const char* string, char separator, char** splitArr)
 		splitSize++;
 		string++;
 	}
+	splitArr[currentIndex] = new char[splitSize + 1];
 }
 
 char** splitStr(const char* string, char separator)
@@ -113,7 +110,7 @@ char** splitStr(const char* string, char separator)
 	if (string == nullptr)
 		return nullptr;
 
-	char** splitArr = new char* [countSeparators(string, separator)];
+	char** splitArr = new char* [countSeparators(string, separator) + 1];
 	fillSplitArr(string, separator, splitArr);
 
 	size_t currentSplitIndex = 0, currentIndex = 0;
@@ -132,6 +129,7 @@ char** splitStr(const char* string, char separator)
 		currentIndex++;
 		string++;
 	}
+	splitArr[currentSplitIndex][currentIndex] = '\0';
 
 	return splitArr;
 }
@@ -142,9 +140,10 @@ size_t stringLength(const char* string)
 		return 0;
 
 	size_t length = 0;
-	while (*string)
+	while (*string != '\0')
 	{
 		length++;
+		string++;
 	}
 	return length;
 }
@@ -163,6 +162,9 @@ bool compareString(const char* leftString, const char* rightString)
 		{
 			if (*leftString != *rightString)
 				return false;
+
+			leftString++;
+			rightString++;
 		}
 		return true;
 	}
@@ -197,28 +199,28 @@ uint8_t charToValue(char digit)
 	return digit - '0';
 }
 
-size_t stringToValue(char* const string)
+size_t stringToValue(const char* string)
 {
 	size_t value = 0;
-	char* tmp = string;
-	while (*tmp)
+	while (*string)
 	{
-		value = value * 10 + charToValue(*tmp);
+		value = value * 10 + charToValue(*string);
+		string++;
 	}
 	return value;
 }
 
 bool moveCommand(GameInfo* gameInfo, char** args)
 {
-	Position piece{};
-	piece.x = stringToValue(args[0]);
-	piece.y = stringToValue(args[1]);
+	Position* piece = createPosition(stringToValue(args[1]), stringToValue(args[2]));
+	Position* move = createPosition(stringToValue(args[3]), stringToValue(args[4]));
 
-	Position move{};
-	move.x = stringToValue(args[2]);
-	move.y = stringToValue(args[3]);
+	bool result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move, gameInfo->isGameOver);
 
-	return moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, &piece, &move, gameInfo->isGameOver);
+	deletePosition(piece);
+	deletePosition(move);
+
+	return result;
 }
 
 bool backCommand(GameInfo* gameInfo)
@@ -231,23 +233,50 @@ bool backCommand(GameInfo* gameInfo)
 
 void infoCommand(GameInfo* gameInfo)
 {
-
+	cout << "Not ready";
 }
 
-bool newGame(GameInfo* gameInfo, char** split)
+void newGame(GameInfo* gameInfo, char* arg)
 {
-	
+	size_t newSize = stringToValue(arg);
+	newBoard(gameInfo->board, gameInfo->boardSize, newSize);
+	gameInfo->boardSize = newSize;
 }
 
-void game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
+bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 {
+	char** args = splitStr(split[1], TYPE_SEPARATOR);
+	if (!compareString(args[0], args[1]))
+		return false;
+
+	newGame(gameInfo, args[0]);
+
 	while (true)
 	{
 		printBoard(gameInfo->board, gameInfo->boardSize);
+		cout << (!gameInfo->player ? "Attackers" : "Defenders") << " turn: ";
 
 		cin.getline(input, INPUT_ARRAY_SIZE);
-		split = splitStr(input, SEPARATOR);
+		split = splitStr(input, ARGUMENT_SEPARATOR);
+
+		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
+		{
+			if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
+				break;
+		}
+		else if (compareString(split[0], MOVE) || compareString(split[0], MOVE_SMALL))
+			moveCommand(gameInfo, split);
+		else if (compareString(split[0], BACK) || compareString(split[0], BACK_SMALL))
+			backCommand(gameInfo);
+		else if (compareString(split[0], INFO) || compareString(split[0], INFO_SMALL))
+			infoCommand(gameInfo);
+		else
+			cout << "Command isn't recognized!";
+
+		cout << endl;
 	}
+
+	return true;
 }
 
 void run()
@@ -258,12 +287,19 @@ void run()
 	char** split;
 	while (true)
 	{
-
 		cin.getline(input, INPUT_ARRAY_SIZE);
-		split = splitStr(input, SEPARATOR);
+		split = splitStr(input, ARGUMENT_SEPARATOR);
 		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
 			break;
 		else if (compareString(split[0], NEW_GAME) || compareString(split[0], NEW_GAME_SMALL))
+		{
+			if (!game(gameInfo, input, split))
+				cout << "Type doesn't exist!";
+		}
+		else
+			cout << "Command isn't recognized!";
+
+		cout << endl;
 	}
 	deallocateGameInfoMemory(gameInfo);
 }

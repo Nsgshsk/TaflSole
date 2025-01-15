@@ -84,16 +84,16 @@ void initializePieces(Board board, size_t size)
 	{
 		for (size_t col = 0; col < size; col++)
 		{
-			if (isCorner(row, col, size))
+			if (isCorner(size, row, col))
 				board[row][col] = END_POINT;
 
-			else if (isAttackersStartingPosition(row, col, size))
+			else if (isAttackersStartingPosition(size, row, col))
 				board[row][col] = ATTACKER;
 
-			else if (isDefendersStartingPosition(row, col, size))
+			else if (isDefendersStartingPosition(size, row, col))
 				board[row][col] = DEFENDER;
 
-			else if (isKingStartingPosition(row, col, size))
+			else if (isKingStartingPosition(size, row, col))
 				board[row][col] = KING;
 
 			else
@@ -135,12 +135,13 @@ bool newBoard(Board& board, size_t oldSize, size_t newSize)
 
 void closeBoard(Board board, size_t size)
 {
-	deallocateBoardMemory(board, size);
+	if (board != nullptr)
+		deallocateBoardMemory(board, size);
 }
 
 bool changeCell(Board board, size_t size, size_t row, size_t col, char cellType)
 {
-	if (isOutOfBounds(row, col, size))
+	if (isOutOfBounds(size, row, col))
 		return false;
 
 	board[row][col] = cellType;
@@ -150,7 +151,7 @@ bool changeCell(Board board, size_t size, size_t row, size_t col, char cellType)
 
 char typeOfCell(const Board board, size_t size, size_t row, size_t col)
 {
-	if (isOutOfBounds(row, col, size))
+	if (isOutOfBounds(size, row, col))
 		return -1;
 
 	return board[row][col];

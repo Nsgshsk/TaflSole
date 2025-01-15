@@ -1,14 +1,15 @@
 #pragma once
 
-struct Position
-{
-	size_t x, y;
-};
+struct Position;
 
 struct MoveNode;
 
 typedef MoveNode* HistoryStack;
 typedef char** Board;
+
+Position* createPosition(size_t x, size_t y);
+
+void deletePosition(Position* pos);
 
 bool newBoard(Board& board, size_t oldSize, size_t newSize);
 

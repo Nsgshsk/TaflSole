@@ -1,6 +1,9 @@
 #pragma once
 
-struct Position;
+struct Position
+{
+	size_t x, y;
+};
 
 // History stack node
 struct MoveNode
