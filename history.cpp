@@ -27,6 +27,10 @@ MoveNode* createMoveNode(Position* piece, Position* move, Position* taken, size_
 // Frees memory space taken by MoveNode
 void deleteMoveNode(MoveNode* node)
 {
+	delete &node->takenSize;
+	delete[] node->taken;
+	delete node->piece;
+	delete node->move;
 	delete node;
 }
 
@@ -67,4 +71,13 @@ void saveMove(HistoryStack& history, Position* piece, Position* move, Position* 
 MoveNode* backMove(HistoryStack& history)
 {
 	return pop(history);
+}
+
+// Deallocates all memory from HistoryStack
+void deallocateHistoryStackMemory(HistoryStack& history)
+{
+	while (history != nullptr)
+	{
+		deleteMoveNode(pop(history));
+	}
 }

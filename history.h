@@ -23,6 +23,8 @@ typedef MoveNode* HistoryStack;
 
 void deleteMoveNode(MoveNode* node);
 
+void deallocateHistoryStackMemory(HistoryStack& history);
+
 void saveMove(HistoryStack& history, Position* piece, Position* move);
 
 void saveMove(HistoryStack& history, Position* piece, Position* move, Position* taken, size_t takenSize);

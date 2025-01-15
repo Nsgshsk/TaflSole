@@ -9,6 +9,22 @@ using std::endl;
 const size_t INPUT_ARRAY_SIZE = 32;
 const char SEPARATOR = ' ';
 
+const char* MENU_MESSAGE = "1) NewGame <board type>\nBoard types: 9x9, 11x11, 13x13\n2) Quit\n";
+const char* GAME_MESSAGE = "1) Move <piece position> <move position>\n2) Back\n3) Info\n4) ";
+
+// Command strings
+const char* NEW_GAME = "NewGame";
+const char* NEW_GAME_SMALL = "newgame";
+const char* QUIT = "Quit";
+const char* QUIT_SMALL = "quit";
+
+const char* MOVE = "Move";
+const char* MOVE_SMALL = "move";
+const char* BACK = "Back";
+const char* BACK_SMALL = "back";
+const char* INFO = "Info";
+const char* INFO_SMALL = "info";
+
 struct GameInfo
 {
 	bool isGameOver;
@@ -20,40 +36,79 @@ struct GameInfo
 	HistoryStack history;
 };
 
-size_t countSeparators(char* const string, char separator)
+void setGameInfo(GameInfo* gameInfo, size_t boardSize)
+{
+	gameInfo->isGameOver = false;
+	gameInfo->player = 0;
+	if (boardSize > 0)
+	{
+		newBoard(gameInfo->board, gameInfo->boardSize, boardSize);
+		gameInfo->boardSize = boardSize;
+	}
+	else
+	{
+		gameInfo->board = nullptr;
+		gameInfo->boardSize = 0;
+	}
+	gameInfo->boardSize = 0;
+	gameInfo->AttackersScore = 0;
+	gameInfo->DeffendersScore = 0;
+	gameInfo->history = nullptr;
+}
+
+GameInfo* allocateGameInfoMemory()
+{
+	GameInfo* gameInfo = new GameInfo;
+
+	setGameInfo(gameInfo, 0);
+
+	return gameInfo;
+}
+
+void deallocateGameInfoMemory(GameInfo* gameInfo)
+{
+	delete &gameInfo->isGameOver;
+	delete &gameInfo->player;
+	closeBoard(gameInfo->board, gameInfo->boardSize);
+	delete &gameInfo->boardSize;
+	delete &gameInfo->AttackersScore;
+	delete &gameInfo->DeffendersScore;
+	deallocateHistoryStackMemory(gameInfo->history);
+	delete gameInfo;
+}
+
+size_t countSeparators(const char* string, char separator)
 {
 	size_t count = 0;
-	char* tmp = string;
-	while (*tmp)
+	while (*string)
 	{
-		if (*tmp == separator)
+		if (*string == separator)
 			count++;
 
-		tmp++;
+		string++;
 	}
 
 	return count;
 }
 
-void fillSplitArr(char* const string, char separator, char** splitArr)
+void fillSplitArr(const char* string, char separator, char** splitArr)
 {
-	char* tmp = string;
 	size_t splitSize = 0, currentIndex = 0;
-	while (*tmp)
+	while (*string)
 	{
-		if (*tmp == separator)
+		if (*string == separator)
 		{
 			splitArr[currentIndex] = new char[splitSize + 1];
 			splitSize = 0;
 			currentIndex++;
-			tmp++;
+			string++;
 		}
 		splitSize++;
-		tmp++;
+		string++;
 	}
 }
 
-char** splitStr(char* const string, char separator)
+char** splitStr(const char* string, char separator)
 {
 	if (string == nullptr)
 		return nullptr;
@@ -61,25 +116,57 @@ char** splitStr(char* const string, char separator)
 	char** splitArr = new char* [countSeparators(string, separator)];
 	fillSplitArr(string, separator, splitArr);
 
-	char* tmp = string;
 	size_t currentSplitIndex = 0, currentIndex = 0;
-	while (*tmp)
+	while (*string)
 	{
-		if (*tmp == separator)
+		if (*string == separator)
 		{
 			splitArr[currentSplitIndex][currentIndex] = '\0';
 
 			currentIndex = 0;
 			currentSplitIndex++;
-			tmp++;
+			string++;
 		}
 
-		splitArr[currentSplitIndex][currentIndex] = *tmp;
+		splitArr[currentSplitIndex][currentIndex] = *string;
 		currentIndex++;
-		tmp++;
+		string++;
 	}
 
 	return splitArr;
+}
+
+size_t stringLength(const char* string)
+{
+	if (string == nullptr)
+		return 0;
+
+	size_t length = 0;
+	while (*string)
+	{
+		length++;
+	}
+	return length;
+}
+
+bool compareString(const char* leftString, const char* rightString)
+{
+	if (leftString == rightString)
+		return true;
+
+	size_t leftLength = stringLength(leftString),
+		rightLength = stringLength(rightString);
+
+	if (leftLength == rightLength)
+	{
+		while (*leftString)
+		{
+			if (*leftString != *rightString)
+				return false;
+		}
+		return true;
+	}
+	return false;
 }
 
 void printBoard(const Board board, size_t size)
@@ -147,13 +234,16 @@ void infoCommand(GameInfo* gameInfo)
 
 }
 
-void game()
+bool newGame(GameInfo* gameInfo, char** split)
 {
-	char input[INPUT_ARRAY_SIZE]{};
-	char** split;
+	
+}
+
+void game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
+{
 	while (true)
 	{
-		printBoard()
+		printBoard(gameInfo->board, gameInfo->boardSize);
 
 		cin.getline(input, INPUT_ARRAY_SIZE);
 		split = splitStr(input, SEPARATOR);
@@ -162,10 +252,18 @@ void game()
 
 void run()
 {
+	GameInfo* gameInfo = allocateGameInfoMemory();
+
 	char input[INPUT_ARRAY_SIZE]{};
+	char** split;
 	while (true)
 	{
-		cin.getline(input, INPUT_ARRAY_SIZE);
 
+		cin.getline(input, INPUT_ARRAY_SIZE);
+		split = splitStr(input, SEPARATOR);
+		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
+			break;
+		else if (compareString(split[0], NEW_GAME) || compareString(split[0], NEW_GAME_SMALL))
 	}
+	deallocateGameInfoMemory(gameInfo);
 }

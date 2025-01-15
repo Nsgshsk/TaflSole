@@ -11,7 +11,7 @@ void allocateBoardMemory(Board& board, size_t size)
 	}
 }
 
-void unallocateBoardMemory(Board board, size_t size)
+void deallocateBoardMemory(Board board, size_t size)
 {
 	for (size_t row = 0; row < size; row++)
 	{
@@ -127,7 +127,7 @@ bool initializeBoard(Board board, size_t size)
 bool newBoard(Board& board, size_t oldSize, size_t newSize)
 {
 	if (board != nullptr)
-		unallocateBoardMemory(board, oldSize);
+		deallocateBoardMemory(board, oldSize);
 
 	allocateBoardMemory(board, newSize);
 	return initializeBoard(board, newSize);
@@ -135,7 +135,7 @@ bool newBoard(Board& board, size_t oldSize, size_t newSize)
 
 void closeBoard(Board board, size_t size)
 {
-	unallocateBoardMemory(board, size);
+	deallocateBoardMemory(board, size);
 }
 
 bool changeCell(Board board, size_t size, size_t row, size_t col, char cellType)
@@ -148,7 +148,7 @@ bool changeCell(Board board, size_t size, size_t row, size_t col, char cellType)
 	return true;
 }
 
-char typeOfCell(Board const board, size_t size, size_t row, size_t col)
+char typeOfCell(const Board board, size_t size, size_t row, size_t col)
 {
 	if (isOutOfBounds(row, col, size))
 		return -1;
