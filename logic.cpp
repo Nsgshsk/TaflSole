@@ -24,7 +24,7 @@ bool isKingOnlyCell(size_t boardSize, size_t row, size_t col)
 {
 	if (isKingStartingPosition(boardSize, row, col))
 		return true;
-	else if (isCorner(row, col, boardSize))
+	else if (isCorner(boardSize, row, col))
 		return true;
 	else
 		return false;
@@ -107,7 +107,8 @@ bool isMovementInBounds(Board board, size_t size, Position* piece, Position* mov
 		}
 		for (size_t c = tmp1 + 1; c < tmp2; c++)
 		{
-			if (isTakenCell(board, size, move->x, c) || isEnemyCell(board, size, pieceType, move->x, c))
+			if (isTakenCell(board, size, move->x, c) || 
+				(isEnemyCell(board, size, pieceType, move->x, c) && !isKingStartingPosition(size, move->x, c)))
 				return false;
 		}
 		return true;
@@ -126,7 +127,8 @@ bool isMovementInBounds(Board board, size_t size, Position* piece, Position* mov
 			}
 			for (size_t r = tmp1 + 1; r < tmp2; r++)
 			{
-				if (isTakenCell(board, size, r, move->y) || isEnemyCell(board, size, pieceType, r, move->y))
+				if (isTakenCell(board, size, r, move->y) || 
+					(isEnemyCell(board, size, pieceType, r, move->y) && !isKingStartingPosition(size, r, move->y)))
 					return false;
 			}
 			return true;
@@ -162,6 +164,40 @@ void fillIsEnemyArr(Board board, size_t size, char pieceType, Position* piece, b
 	isEnemyArr[2] = isEnemyCell(board, size, pieceType, piece->x - 1, piece->y);
 	// row += 0, col += -1
 	isEnemyArr[3] = isEnemyCell(board, size, pieceType, piece->x, piece->y - 1);
+
+	if (pieceType == KING)
+	{
+		bool kingOnlyCellArr[ARRAY_SIZE]{};
+		bool edgeCellArr[ARRAY_SIZE]{};
+
+		// row += 1, col += 0
+		kingOnlyCellArr[0] = isKingOnlyCell(size, piece->x + 1, piece->y);
+		// row += 0, col += 1
+		kingOnlyCellArr[1] = isKingOnlyCell(size, piece->x, piece->y + 1);
+		// row += -1, col += 0
+		kingOnlyCellArr[2] = isKingOnlyCell(size, piece->x - 1, piece->y);
+		// row += 0, col += -1
+		kingOnlyCellArr[3] = isKingOnlyCell(size, piece->x, piece->y - 1);
+
+		// row += 1, col += 0
+		edgeCellArr[0] = isOutOfBounds(size, piece->x + 1, piece->y);
+		// row += 0, col += 1
+		edgeCellArr[1] = isOutOfBounds(size, piece->x, piece->y + 1);
+		// row += -1, col += 0
+		edgeCellArr[2] = isOutOfBounds(size, piece->x - 1, piece->y);
+		// row += 0, col += -1
+		edgeCellArr[3] = isOutOfBounds(size, piece->x, piece->y - 1);
+
+		bool once = false;
+		for (size_t i = 0; i < ARRAY_SIZE; i++)
+		{
+			if (!isEnemyArr[i] && !once)
+			{
+				isEnemyArr[i] = kingOnlyCellArr[i] || edgeCellArr[i];
+				once = true;
+			}
+		}
+	}
 }
 
 bool isCaptured(Board board, size_t size, char pieceType, Position* piece)
@@ -226,26 +262,11 @@ bool movePiece(Board board, size_t size, Position* piece, Position* move, char &
 	return result && changeCell(board, size, piece->x, piece->y, isKingOnly ? END_POINT : EMPTY_SPACE);
 }
 
-void fillEnemyTypeArr(char pieceType, char enemyType[ENEMY_TYPE_ARRAY_SIZE])
-{
-	switch (pieceType)
-	{
-		case ATTACKER:
-			enemyType[1] = KING;
-		case DEFENDER:
-		case KING:
-			enemyType[0] = pieceType == ATTACKER ? DEFENDER : ATTACKER;
-			break;
-	}
-}
-
 bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize, 
 	bool isEnemyArr[ARRAY_SIZE], char pieceType, Position* move, bool& isGameOver)
 {
 	size_t takenIndex = 0;
 	taken = new Position[takenSize];
-	char enemyType[ENEMY_TYPE_ARRAY_SIZE]{};
-	fillEnemyTypeArr(pieceType, enemyType);
 
 	for (size_t i = 0; i < ARRAY_SIZE; i++)
 	{
@@ -267,20 +288,16 @@ bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize,
 					enemy.y -= 1;
 					break;
 			}
-			for (size_t i = 0; i < ENEMY_TYPE_ARRAY_SIZE; i++)
+			char enemyType = typeOfCell(board, size, enemy.x, enemy.y);
+			if (isCaptured(board, size, enemyType, &enemy))
 			{
-				if (isCaptured(board, size, enemyType[i], &enemy))
-				{
-					if (enemyType[i] == KING)
-						isGameOver = true;
+				if (enemyType == KING)
+					isGameOver = true;
 
-					if (!capturePiece(board, size, &enemy))
-						return false;
-					taken[takenIndex] = enemy;
-				}
-
-				if (enemyType[1] != KING)
-					break;
+				if (!capturePiece(board, size, &enemy))
+					return false;
+				taken[takenIndex] = enemy;
+				takenIndex++;
 			}
 		}
 	}
@@ -295,7 +312,29 @@ bool isGameOverCondition(size_t boardSize, Position* move)
 	return isCorner(boardSize, move->x, move->y);
 }
 
-bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move, bool& isGameOver, bool player)
+bool checkEnemieCaptured(const Board board, size_t size, Position* move, unsigned char location)
+{
+	Position enemy = *move;
+	switch (location)
+	{
+	case 0:
+		enemy.x += 1;
+		break;
+	case 1:
+		enemy.y += 1;
+		break;
+	case 2:
+		enemy.x -= 1;
+		break;
+	case 3:
+		enemy.y -= 1;
+		break;
+	}
+	char enemyType = typeOfCell(board, size, enemy.x, enemy.y);
+	return isCaptured(board, size, enemyType, &enemy);
+}
+
+bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move, bool& isGameOver, bool player, size_t &playerScore)
 {
 	char pieceType;
 	if (!movePiece(board, size, piece, move, pieceType, player))
@@ -312,13 +351,14 @@ bool moveOperation(HistoryStack& history, Board board, size_t size, Position* pi
 	size_t takenSize = 0;
 	for (size_t i = 0; i < ARRAY_SIZE; i++)
 	{
-		if (isEnemyArr[i])
+		if (isEnemyArr[i] && checkEnemieCaptured(board, size, move, i))
 			takenSize++;
 	}
 
 	if (takenSize > 0 && fillTakenArr(board, size, taken, takenSize, isEnemyArr, pieceType, move, isGameOver))
 	{
 		saveMove(history, piece, move, taken, takenSize);
+		playerScore += takenSize;
 		return true;
 	}
 

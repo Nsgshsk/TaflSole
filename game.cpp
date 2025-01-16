@@ -15,7 +15,9 @@ const char TYPE_SEPARATOR = 'x';
 const size_t MOVE_ARGS = 4;
 
 const char* MENU_MESSAGE = "1) NewGame <board type>\nBoard types: 9x9, 11x11, 13x13\n2) Quit\n";
-const char* GAME_MESSAGE = "1) Move <piece position> <move position>\n2) Back\n3) Info\n4) ";
+const char* HELP_MESSAGE = "1) Move <piece coordinates> <move coordinates>\n2) Back\n3) Info\n4) Quit";
+const char* CONFIRMATION_MESSAGE = "Are you sure? (Y\\N)";
+const char* PROMT_MESSAGE = "> ";
 
 // Command strings
 const char* NEW_GAME = "NewGame";
@@ -29,6 +31,8 @@ const char* BACK = "Back";
 const char* BACK_SMALL = "back";
 const char* INFO = "Info";
 const char* INFO_SMALL = "info";
+const char* HELP = "Help";
+const char* HELP_SMALL = "help";
 
 struct GameInfo
 {
@@ -41,13 +45,14 @@ struct GameInfo
 	HistoryStack history;
 };
 
-void setGameInfo(GameInfo* gameInfo, size_t boardSize)
+bool setGameInfo(GameInfo* gameInfo, size_t boardSize)
 {
 	gameInfo->isGameOver = false;
 	gameInfo->player = 0;
 	if (boardSize > 0)
 	{
-		newBoard(gameInfo->board, gameInfo->boardSize, boardSize);
+		if (!newBoard(gameInfo->board, gameInfo->boardSize, boardSize))
+			return false;
 		gameInfo->boardSize = boardSize;
 	}
 	else
@@ -55,10 +60,11 @@ void setGameInfo(GameInfo* gameInfo, size_t boardSize)
 		gameInfo->board = nullptr;
 		gameInfo->boardSize = 0;
 	}
-	gameInfo->boardSize = 0;
 	gameInfo->AttackersScore = 0;
 	gameInfo->DeffendersScore = 0;
 	gameInfo->history = nullptr;
+
+	return true;
 }
 
 GameInfo* allocateGameInfoMemory()
@@ -253,14 +259,19 @@ bool moveCommand(GameInfo* gameInfo, char** args)
 	Position* piece = createPosition(coordinateValuesArr[1], coordinateValuesArr[0]);
 	Position* move = createPosition(coordinateValuesArr[3], coordinateValuesArr[2]);
 
-	bool result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move, gameInfo->isGameOver, gameInfo->player);
-
+	bool result;
+	if (!gameInfo->player)
+		result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move, 
+			gameInfo->isGameOver, gameInfo->player, gameInfo->AttackersScore);
+	else
+		result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move, 
+			gameInfo->isGameOver, gameInfo->player, gameInfo->DeffendersScore);
 	return result;
 }
 
 bool backCommand(GameInfo* gameInfo)
 {
-	if (!gameInfo->player)
+	if (gameInfo->player)
 		return backOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, gameInfo->player, gameInfo->AttackersScore);
 	else
 		return backOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, gameInfo->player, gameInfo->DeffendersScore);
@@ -268,7 +279,9 @@ bool backCommand(GameInfo* gameInfo)
 
 void infoCommand(GameInfo* gameInfo)
 {
-	cout << "Not ready";
+	cout << "Game Info" << endl
+		<< "Attackers score: " << gameInfo->AttackersScore << endl 
+		<< "Defenders score: " << gameInfo->DeffendersScore << endl;
 }
 
 void printBoard(const Board board, size_t size)
@@ -297,10 +310,7 @@ void printBoard(const Board board, size_t size)
 bool newGame(GameInfo* gameInfo, char* arg)
 {
 	size_t newSize = stringToValue(arg);
-	bool success = newBoard(gameInfo->board, gameInfo->boardSize, newSize);
-	if (success)
-		gameInfo->boardSize = newSize;
-	return success;
+	return setGameInfo(gameInfo, newSize);
 }
 
 void changePlayer(bool& player)
@@ -320,14 +330,17 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 	while (!gameInfo->isGameOver)
 	{
 		printBoard(gameInfo->board, gameInfo->boardSize);
-		cout << (!gameInfo->player ? "Attackers" : "Defenders") << " turn: ";
+		cout << (!gameInfo->player ? "Attackers" : "Defenders") << " turn" << PROMT_MESSAGE;
 
 		cin.getline(input, INPUT_ARRAY_SIZE);
 		split = splitStr(input, ARGUMENT_SEPARATOR);
 
 		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
 		{
-			break;
+			cout << CONFIRMATION_MESSAGE;
+			cin.getline(input, INPUT_ARRAY_SIZE);
+			if (compareString(input, "Y") || compareString(input, "y"))
+				break;
 		}
 		else if (compareString(split[0], MOVE) || compareString(split[0], MOVE_SMALL))
 		{
@@ -341,14 +354,17 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 		}
 		else if (compareString(split[0], INFO) || compareString(split[0], INFO_SMALL))
 			infoCommand(gameInfo);
+		else if (compareString(split[0], HELP) || compareString(split[0], HELP_SMALL))
+			cout << HELP_MESSAGE;
 		else
 			cout << "Command isn't recognized!";
 
-		cout << endl;
+		cout << endl << endl;
 		deleteSplitString(split);
 	}
 
-	cout << !gameInfo->player << " wins";
+	printBoard(gameInfo->board, gameInfo->boardSize);
+	cout << (!gameInfo->player ? "Defenders" : "Attackers") << " wins.\n";
 
 	return true;
 }
@@ -361,6 +377,7 @@ void run()
 	char** split;
 	while (true)
 	{
+		cout << MENU_MESSAGE << endl << PROMT_MESSAGE;
 		cin.getline(input, INPUT_ARRAY_SIZE);
 		split = splitStr(input, ARGUMENT_SEPARATOR);
 		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
@@ -376,6 +393,7 @@ void run()
 		cout << endl;
 		deleteSplitString(split);
 	}
+	cout << "Closing game...";
 	deleteSplitString(split);
 	deallocateGameInfoMemory(gameInfo);
 }
