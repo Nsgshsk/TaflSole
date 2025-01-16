@@ -44,6 +44,8 @@ bool isEnemyCell(Board board, size_t size, char pieceType, size_t row, size_t co
 	switch (pieceType)
 	{
 		case DEFENDER:
+			if (moveCell == KING)
+				return false;
 			if (isKingOnlyCell(size, row, col))
 				return true;
 		case KING:
@@ -77,25 +79,60 @@ bool isTakenCell(Board board, size_t size, Position* move)
 	return isTakenCell(board, size, move->x, move->y);
 }
 
-bool isMovementInBounds(size_t boardSize, size_t pieceRow, size_t pieceCol, size_t row, size_t col)
+bool isMovementInBounds(Board board, size_t size, Position* piece, Position* move, char pieceType)
 {
-	if (isOutOfBounds(boardSize, pieceRow, pieceCol))
+	if (isOutOfBounds(size, piece->x, piece->y))
 		return false;
-	if (isOutOfBounds(boardSize, row, col))
+	if (isOutOfBounds(size, move->x, move->y))
 		return false;
 
-	if (pieceRow == row)
-		return true;
+	bool rowEqual = piece->x == move->x,
+		colEqual = piece->y == move->y;
 
-	if (pieceCol == col)
+	if (rowEqual && colEqual)
+		return false;
+
+	size_t tmp1, tmp2;
+	if (rowEqual)
+	{
+		if (piece->y < move->y)
+		{
+			tmp1 = piece->y;
+			tmp2 = move->y;
+		}
+		else
+		{
+			tmp2 = piece->y;
+			tmp1 = move->y;
+		}
+		for (size_t c = tmp1 + 1; c < tmp2; c++)
+		{
+			if (isTakenCell(board, size, move->x, c) || isEnemyCell(board, size, pieceType, move->x, c))
+				return false;
+		}
 		return true;
+	}
+	else if (colEqual)
+	{
+			if (piece->x < move->x)
+			{
+				tmp1 = piece->x;
+				tmp2 = move->x;
+			}
+			else
+			{
+				tmp2 = piece->x;
+				tmp1 = move->x;
+			}
+			for (size_t r = tmp1 + 1; r < tmp2; r++)
+			{
+				if (isTakenCell(board, size, r, move->y) || isEnemyCell(board, size, pieceType, r, move->y))
+					return false;
+			}
+			return true;
+	}
 
 	return false;
-}
-
-bool isMovementInBounds(size_t boardSize, Position* piece, Position* move)
-{
-	return isMovementInBounds(boardSize, piece->x, piece->y, move->x, move->y);
 }
 
 bool isValidMove(Board board, size_t size, char pieceType, Position* piece, Position* move)
@@ -109,7 +146,7 @@ bool isValidMove(Board board, size_t size, char pieceType, Position* piece, Posi
 		case DEFENDER:
 		case ATTACKER:
 			return !isTakenCell(board, size, move) && !isEnemyCell(board, size, pieceType, move) 
-				&& isMovementInBounds(size, piece, move);
+				&& isMovementInBounds(board, size, piece, move, pieceType);
 	}
 
 	return false;
@@ -172,8 +209,10 @@ bool movePiece(Board board, size_t size, Position* piece, Position* move, char &
 	if (!isValidMove(board, size, pieceType, piece, move))
 		return false;
 
+	bool isKingOnly = isKingOnlyCell(size, piece);
+
 	bool result = changeCell(board, size, move->x, move->y, pieceType);
-	return result && changeCell(board, size, piece->x, piece->y, EMPTY_SPACE);
+	return result && changeCell(board, size, piece->x, piece->y, isKingOnly ? END_POINT : EMPTY_SPACE);
 }
 
 void fillEnemyTypeArr(char pieceType, char enemyType[ENEMY_TYPE_ARRAY_SIZE])
@@ -205,16 +244,16 @@ bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize,
 			switch (i)
 			{
 				case 0:
-					move->x += 1;
+					enemy.x += 1;
 					break;
 				case 1:
-					move->y += 1;
+					enemy.y += 1;
 					break;
 				case 2:
-					move->x -= 1;
+					enemy.x -= 1;
 					break;
 				case 3:
-					move->y -= 1;
+					enemy.y -= 1;
 					break;
 			}
 			for (size_t i = 0; i < ENEMY_TYPE_ARRAY_SIZE; i++)
@@ -283,11 +322,9 @@ bool backOperation(HistoryStack& history, Board board, size_t size, bool player,
 		return false;
 
 	Position* working = previous->move;
-	char pieceType = typeOfCell(board, size, working->x, working->y);
-	changeCell(board, size, working->x, working->y, EMPTY_SPACE);
-
-	working = previous->piece;
-	changeCell(board, size, working->x, working->y, pieceType);
+	char pieceType;
+	if (!movePiece(board, size, previous->move, previous->piece, pieceType))
+		return false;
 
 	if (previous->takenSize > 0)
 	{

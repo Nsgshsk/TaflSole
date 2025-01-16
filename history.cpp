@@ -6,6 +6,7 @@ MoveNode* createMoveNode(Position* piece, Position* move)
 
 	// Node data initialization
 	newNode->takenSize = 0;
+	newNode->taken = nullptr;
 	newNode->piece = piece;
 	newNode->move = move;
 
@@ -27,8 +28,8 @@ MoveNode* createMoveNode(Position* piece, Position* move, Position* taken, size_
 // Frees memory space taken by MoveNode
 void deleteMoveNode(MoveNode* node)
 {
-	delete &node->takenSize;
-	delete[] node->taken;
+	if (node->taken != nullptr)
+		delete[] node->taken;
 	delete node->piece;
 	delete node->move;
 	delete node;

@@ -103,6 +103,7 @@ void fillSplitArr(const char* string, char separator, char** splitArr)
 		string++;
 	}
 	splitArr[currentIndex] = new char[splitSize + 1];
+	splitArr[currentIndex + 1] = new char;
 }
 
 char** splitStr(const char* string, char separator)
@@ -110,7 +111,7 @@ char** splitStr(const char* string, char separator)
 	if (string == nullptr)
 		return nullptr;
 
-	char** splitArr = new char* [countSeparators(string, separator) + 1];
+	char** splitArr = new char* [countSeparators(string, separator) + 1 + 1];
 	fillSplitArr(string, separator, splitArr);
 
 	size_t currentSplitIndex = 0, currentIndex = 0;
@@ -130,8 +131,21 @@ char** splitStr(const char* string, char separator)
 		string++;
 	}
 	splitArr[currentSplitIndex][currentIndex] = '\0';
+	*splitArr[currentSplitIndex + 1] = -1;
 
 	return splitArr;
+}
+
+void deleteSplitString(char** split)
+{
+	char** tmp = split;
+	while (**tmp != -1)
+	{
+		delete[] *tmp;
+		tmp++;
+	}
+	delete *tmp;
+	delete[] split;
 }
 
 size_t stringLength(const char* string)
@@ -217,9 +231,6 @@ bool moveCommand(GameInfo* gameInfo, char** args)
 
 	bool result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move, gameInfo->isGameOver);
 
-	deletePosition(piece);
-	deletePosition(move);
-
 	return result;
 }
 
@@ -261,8 +272,7 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 
 		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
 		{
-			if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
-				break;
+			break;
 		}
 		else if (compareString(split[0], MOVE) || compareString(split[0], MOVE_SMALL))
 			moveCommand(gameInfo, split);
@@ -274,6 +284,7 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 			cout << "Command isn't recognized!";
 
 		cout << endl;
+		deleteSplitString(split);
 	}
 
 	return true;
@@ -300,6 +311,8 @@ void run()
 			cout << "Command isn't recognized!";
 
 		cout << endl;
+		deleteSplitString(split);
 	}
+	deleteSplitString(split);
 	deallocateGameInfoMemory(gameInfo);
 }
