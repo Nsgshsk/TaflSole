@@ -38,7 +38,7 @@ bool isKingOnlyCell(size_t boardSize, Position* move)
 bool isEnemyCell(Board board, size_t size, char pieceType, size_t row, size_t col)
 {
 	if (isOutOfBounds(size, row, col))
-		return true;
+		return false;
 
 	char moveCell = typeOfCell(board, size, row, col);
 	switch (pieceType)
@@ -199,12 +199,23 @@ bool capturePiece(Board board, size_t size, Position* piece)
 	return capturePiece(board, size, piece->x, piece->y);
 }
 
-bool movePiece(Board board, size_t size, Position* piece, Position* move, char &pieceType)
+bool movePiece(Board board, size_t size, Position* piece, Position* move, char &pieceType, bool player)
 {
 	if (isOutOfBounds(size, move->x, move->y))
 		return false;
 
 	pieceType = typeOfCell(board, size, piece->x, piece->y);
+
+	if (!player)
+	{
+		if (pieceType != ATTACKER)
+			return false;
+	}
+	else
+	{
+		if (pieceType == ATTACKER)
+			return false;
+	}
 
 	if (!isValidMove(board, size, pieceType, piece, move))
 		return false;
@@ -284,10 +295,10 @@ bool isGameOverCondition(size_t boardSize, Position* move)
 	return isCorner(boardSize, move->x, move->y);
 }
 
-bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move, bool& isGameOver)
+bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move, bool& isGameOver, bool player)
 {
 	char pieceType;
-	if (!movePiece(board, size, piece, move, pieceType))
+	if (!movePiece(board, size, piece, move, pieceType, player))
 		return false;
 
 	if (isGameOverCondition(size, move))
@@ -323,12 +334,12 @@ bool backOperation(HistoryStack& history, Board board, size_t size, bool player,
 
 	Position* working = previous->move;
 	char pieceType;
-	if (!movePiece(board, size, previous->move, previous->piece, pieceType))
+	if (!movePiece(board, size, previous->move, previous->piece, pieceType, !player))
 		return false;
 
 	if (previous->takenSize > 0)
 	{
-		pieceType = !player ? DEFENDER : ATTACKER;
+		pieceType = player ? DEFENDER : ATTACKER;
 		working = previous->taken;
 		for (size_t i = 0; i < previous->takenSize; i++)
 		{
