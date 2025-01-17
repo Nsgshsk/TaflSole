@@ -265,11 +265,17 @@ bool movePiece(Board board, size_t size, Position* piece, Position* move, char &
 bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize, 
 	bool isEnemyArr[ARRAY_SIZE], char pieceType, Position* move, bool& isGameOver)
 {
+	if (takenSize == 0)
+		return false;
+
 	size_t takenIndex = 0;
 	taken = new Position[takenSize];
 
 	for (size_t i = 0; i < ARRAY_SIZE; i++)
 	{
+		if (!takenSize)
+			break;
+
 		if (isEnemyArr[i])
 		{
 			Position enemy = *move;
@@ -296,8 +302,10 @@ bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize,
 
 				if (!capturePiece(board, size, &enemy))
 					return false;
+
 				taken[takenIndex] = enemy;
 				takenIndex++;
+				takenSize--;
 			}
 		}
 	}
@@ -312,7 +320,7 @@ bool isGameOverCondition(size_t boardSize, Position* move)
 	return isCorner(boardSize, move->x, move->y);
 }
 
-bool checkEnemieCaptured(const Board board, size_t size, Position* move, unsigned char location)
+bool checkEnemieCaptured(const Board board, size_t size, Position* move, size_t location)
 {
 	Position enemy = *move;
 	switch (location)
