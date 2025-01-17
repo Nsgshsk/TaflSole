@@ -1,5 +1,21 @@
+/**
+*
+* Solution to course project # 7
+* Introduction to programming course
+* Faculty of Mathematics and Informatics of Sofia University
+* Winter semester 2024/2025
+*
+* @author Lyubomir Topalski
+* @idnumber 8MI0600446
+* @compiler VC
+*
+* Implements move history tracking
+*
+*/
+
 #include "history.h"
 
+// Function for creating a moveNode
 MoveNode* createMoveNode(Position* piece, Position* move)
 {
 	MoveNode* newNode = new MoveNode;

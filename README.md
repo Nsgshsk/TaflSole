@@ -37,7 +37,7 @@ The project is organized into several modules, each handling specific aspects of
 
 - `TaflSole.cpp`
   - Contains the main entry point
-  - Implements the `run()` function from the game module
+  - Calls the `run()` function from the game module
 
 ### Header and Implementation Files
 
