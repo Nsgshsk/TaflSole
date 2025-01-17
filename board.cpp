@@ -1,6 +1,6 @@
 #include "board.h"
-#include "positionChecks.h"
 #include "constants.h"
+#include "positionChecks.h"
 
 void allocateBoardMemory(Board& board, size_t size)
 {
@@ -106,20 +106,20 @@ bool initializeBoard(Board board, size_t size)
 {
 	switch (size)
 	{
-		case SMALL:
-			initializePieces(board, SMALL);
-			break;
+	case SMALL:
+		initializePieces(board, SMALL);
+		break;
 
-		case MEDIUM:
-			initializePieces(board, MEDIUM);
-			break;
+	case MEDIUM:
+		initializePieces(board, MEDIUM);
+		break;
 
-		case BIG:
-			initializePieces(board, BIG);
-			break;
+	case BIG:
+		initializePieces(board, BIG);
+		break;
 
-		default:
-			return false;
+	default:
+		return false;
 	}
 	return true;
 }

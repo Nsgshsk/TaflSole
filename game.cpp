@@ -1,6 +1,6 @@
-#include <iostream>
 #include "game.h"
 #include "logic.h"
+#include <iostream>
 
 using std::cin;
 using std::cout;
@@ -261,10 +261,10 @@ bool moveCommand(GameInfo* gameInfo, char** args)
 
 	bool result;
 	if (!gameInfo->player)
-		result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move, 
+		result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move,
 			gameInfo->isGameOver, gameInfo->player, gameInfo->AttackersScore);
 	else
-		result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move, 
+		result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move,
 			gameInfo->isGameOver, gameInfo->player, gameInfo->DeffendersScore);
 	return result;
 }
@@ -280,7 +280,7 @@ bool backCommand(GameInfo* gameInfo)
 void infoCommand(GameInfo* gameInfo)
 {
 	cout << "Game Info" << endl
-		<< "Attackers score: " << gameInfo->AttackersScore << endl 
+		<< "Attackers score: " << gameInfo->AttackersScore << endl
 		<< "Defenders score: " << gameInfo->DeffendersScore << endl;
 }
 
