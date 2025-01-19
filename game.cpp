@@ -13,6 +13,7 @@
 *
 */
 
+#include "constants.h"
 #include "game.h"
 #include "logic.h"
 #include <iostream>
@@ -29,13 +30,19 @@ const char TYPE_SEPARATOR = 'x';
 
 const size_t MOVE_ARGS = 4;
 
-const char* MENU_MESSAGE = "1) NewGame <board type>\nBoard types: 9x9, 11x11, 13x13\n2) Quit\n";
-const char* HELP_MESSAGE = "1) Move <piece coordinates> <move coordinates>\n2) Back\n3) Info\n4) Quit";
-const char* CONFIRMATION_MESSAGE = "Are you sure? (Y\\N)";
+// Message strings
+const char* MENU_MESSAGE = "Menu\n-------\n1) NewGame <board type>\nBoard types: 9x9, 11x11, 13x13\n2) Quit\n";
+const char* HELP_MESSAGE = "Help\n-------\n1) Move <from_coordinates> <to_coordinates>\n2) Back\n3) Info\n4) Quit";
+const char* CONFIRMATION_MESSAGE = "You will lose the game by quiting!\nAre you sure? (Y\\N) ";
 const char* PROMT_MESSAGE = "> ";
+const char* COMMAND_NOT_RECOGNIZED = "Command isn't recognized!";
+const char* TYPE_NOT_RECOGNIZED = "Type isn't recognized!";
+const char* ERROR_MESSAGE = "Invalid command use!";
+const char* HELP_REMINDER_MESSAGE = "If you are not sure how to use a command use \"help\"";
+const char* CANCEL_MESSAGE = "Quit canceled...";
 
 // Command strings
-const char* NEW_GAME = "NewGame";
+const char* NEW_GAME = "Newgame";
 const char* NEW_GAME_SMALL = "newgame";
 const char* QUIT = "Quit";
 const char* QUIT_SMALL = "quit";
@@ -53,10 +60,11 @@ struct GameInfo
 {
 	bool isGameOver;
 	bool player;
+	size_t turn;
 	size_t boardSize;
 	Board board;
 	size_t AttackersScore;
-	size_t DeffendersScore;
+	size_t DefendersScore;
 	HistoryStack history;
 };
 
@@ -64,6 +72,7 @@ bool setGameInfo(GameInfo* gameInfo, size_t boardSize)
 {
 	gameInfo->isGameOver = false;
 	gameInfo->player = 0;
+	gameInfo->turn = 0;
 	if (boardSize > 0)
 	{
 		if (!newBoard(gameInfo->board, gameInfo->boardSize, boardSize))
@@ -76,7 +85,7 @@ bool setGameInfo(GameInfo* gameInfo, size_t boardSize)
 		gameInfo->boardSize = 0;
 	}
 	gameInfo->AttackersScore = 0;
-	gameInfo->DeffendersScore = 0;
+	gameInfo->DefendersScore = 0;
 	gameInfo->history = nullptr;
 
 	return true;
@@ -280,7 +289,8 @@ bool moveCommand(GameInfo* gameInfo, char** args)
 			gameInfo->isGameOver, gameInfo->player, gameInfo->AttackersScore);
 	else
 		result = moveOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, piece, move,
-			gameInfo->isGameOver, gameInfo->player, gameInfo->DeffendersScore);
+			gameInfo->isGameOver, gameInfo->player, gameInfo->DefendersScore);
+
 	return result;
 }
 
@@ -289,14 +299,47 @@ bool backCommand(GameInfo* gameInfo)
 	if (gameInfo->player)
 		return backOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, gameInfo->player, gameInfo->AttackersScore);
 	else
-		return backOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, gameInfo->player, gameInfo->DeffendersScore);
+		return backOperation(gameInfo->history, gameInfo->board, gameInfo->boardSize, gameInfo->player, gameInfo->DefendersScore);
 }
 
 void infoCommand(GameInfo* gameInfo)
 {
-	cout << "Game Info" << endl
-		<< "Attackers score: " << gameInfo->AttackersScore << endl
-		<< "Defenders score: " << gameInfo->DeffendersScore << endl;
+	size_t pieces = 0, attackerPieces = 0, defenderPieces = 0;
+	switch (gameInfo->boardSize)
+	{
+		case SMALL:
+			pieces = SMALL_ATTACKER + SMALL_DEFENDER;
+			attackerPieces = SMALL_ATTACKER - gameInfo->DefendersScore;
+			defenderPieces = SMALL_DEFENDER - gameInfo->AttackersScore;
+			break;
+		case MEDIUM:
+			pieces = MEDIUM_ATTACKER + MEDIUM_DEFENDER;
+			attackerPieces = MEDIUM_ATTACKER - gameInfo->DefendersScore;
+			defenderPieces = MEDIUM_DEFENDER - gameInfo->AttackersScore;
+			break;
+		case BIG:
+			pieces = BIG_ATTACKER + BIG_DEFENDER;
+			attackerPieces = BIG_ATTACKER - gameInfo->DefendersScore;
+			defenderPieces = BIG_DEFENDER - gameInfo->AttackersScore;
+			break;
+		default:
+			cout << "How did we get here? :O";
+			return;
+	}
+
+	pieces -= gameInfo->AttackersScore + gameInfo->DefendersScore;
+
+	cout << endl 
+		<< "Game Info" << endl
+		<< "----------" << endl
+		<< "Turn: " << gameInfo->turn << endl
+		<< endl
+		<< "Attackers took: " << gameInfo->AttackersScore << endl
+		<< "Defenders took: " << gameInfo->DefendersScore << endl
+		<< endl
+		<< "Left pieces: " << pieces << endl
+		<< "Attacker pieces left: " << attackerPieces << endl
+		<< "Defender pieces left: " << defenderPieces << endl;
 }
 
 void printBoard(const Board board, size_t size)
@@ -342,6 +385,7 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 	if (!newGame(gameInfo, args[0]))
 		return false;
 
+	uint8_t invalidTries = 0;
 	while (!gameInfo->isGameOver)
 	{
 		printBoard(gameInfo->board, gameInfo->boardSize);
@@ -356,28 +400,58 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 			cin.getline(input, INPUT_ARRAY_SIZE);
 			if (compareString(input, "Y") || compareString(input, "y"))
 				break;
+			cout << CANCEL_MESSAGE;
 		}
 		else if (compareString(split[0], MOVE) || compareString(split[0], MOVE_SMALL))
 		{
 			if (splitArrLength(split) == MOVE_ARGS - 1 && moveCommand(gameInfo, split + 1))
+			{
 				changePlayer(gameInfo->player);
+				gameInfo->turn++;
+			}
+			else
+			{
+				cout << ERROR_MESSAGE;
+				invalidTries++;
+			}
 		}
 		else if (compareString(split[0], BACK) || compareString(split[0], BACK_SMALL))
 		{
 			if (backCommand(gameInfo))
+			{
 				changePlayer(gameInfo->player);
+				gameInfo->turn--;
+			}
+			else
+			{
+				cout << ERROR_MESSAGE;
+				invalidTries++;
+			}
 		}
 		else if (compareString(split[0], INFO) || compareString(split[0], INFO_SMALL))
 			infoCommand(gameInfo);
 		else if (compareString(split[0], HELP) || compareString(split[0], HELP_SMALL))
-			cout << HELP_MESSAGE;
+		{
+			cout << endl << HELP_MESSAGE;
+			invalidTries = 0;
+		}
 		else
-			cout << "Command isn't recognized!";
+		{
+			cout << COMMAND_NOT_RECOGNIZED;
+			invalidTries++;
+		}
+
+		if (invalidTries == 5)
+		{
+			cout << endl << HELP_REMINDER_MESSAGE;
+			invalidTries = 0;
+		}
 
 		cout << endl << endl;
 		deleteSplitString(split);
 	}
 
+	cout << endl;
 	printBoard(gameInfo->board, gameInfo->boardSize);
 	cout << (!gameInfo->player ? "Defenders" : "Attackers") << " wins.\n";
 
@@ -395,17 +469,20 @@ void run()
 		cout << MENU_MESSAGE << endl << PROMT_MESSAGE;
 		cin.getline(input, INPUT_ARRAY_SIZE);
 		split = splitStr(input, ARGUMENT_SEPARATOR);
+
+		cout << endl;
+
 		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
 			break;
 		else if (compareString(split[0], NEW_GAME) || compareString(split[0], NEW_GAME_SMALL))
 		{
 			if (splitArrLength(split) == 2 && !game(gameInfo, input, split))
-				cout << "Type doesn't exist!";
+				cout << TYPE_NOT_RECOGNIZED;
 		}
 		else
-			cout << "Command isn't recognized!";
+			cout << COMMAND_NOT_RECOGNIZED;
 
-		cout << endl;
+		cout << endl << endl;
 		deleteSplitString(split);
 	}
 	cout << "Closing game...";

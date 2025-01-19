@@ -87,4 +87,5 @@ This project was developed as a first-year, first-semester university project, d
 
 [Lubomir Topalski](https://github.com/Nsgshsk),
 [Sofia University "St. Kliment Ohridski"](https://uni-sofia.bg/index.php/eng),
-[Faculty of Mathematics and Informatics](https://fmi.uni-sofia.bg/en)
+[Faculty of Mathematics and Informatics](https://fmi.uni-sofia.bg/en),
+[Winter semester 2024-2025]()
