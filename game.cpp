@@ -387,7 +387,7 @@ void changePlayer(bool& player)
 	player = !player;
 }
 
-// Clears console using ANSI escape codes it may not be supported by some consoles or OS-es
+// Clears console using ANSI escape codes, it may not be supported by some consoles or OS-es
 void clear()
 {
 	// CSI[2J clears screen, CSI[H moves the cursor to top-left corner
