@@ -397,6 +397,9 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 	if (!newGame(gameInfo, args[0]))
 		return false;
 
+	// For stylish reason
+	cout << endl;
+
 	uint8_t invalidTries = 0;
 	while (!gameInfo->isGameOver)
 	{
@@ -488,8 +491,6 @@ void run()
 		cin.getline(input, INPUT_ARRAY_SIZE);
 		split = splitStr(input, ARGUMENT_SEPARATOR);
 
-		cout << endl;
-
 		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
 			break;
 		else if (compareString(split[0], NEW_GAME) || compareString(split[0], NEW_GAME_SMALL))
@@ -506,7 +507,7 @@ void run()
 		deleteSplitString(split);
 	}
 
-	cout << "Closing game...";
+	cout << endl << "Closing game...";
 	deleteSplitString(split);
 	deallocateGameInfoMemory(gameInfo);
 }
