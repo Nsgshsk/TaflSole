@@ -56,6 +56,7 @@ const char* INFO_SMALL = "info";
 const char* HELP = "Help";
 const char* HELP_SMALL = "help";
 
+// Stores all info about the game
 struct GameInfo
 {
 	bool isGameOver;
@@ -68,6 +69,7 @@ struct GameInfo
 	HistoryStack history;
 };
 
+// Function sets default values for GameInfo struct
 bool setGameInfo(GameInfo* gameInfo, size_t boardSize)
 {
 	gameInfo->isGameOver = false;
@@ -107,6 +109,8 @@ void deallocateGameInfoMemory(GameInfo* gameInfo)
 	delete gameInfo;
 }
 
+// String helper functions
+
 size_t countSeparators(const char* string, char separator)
 {
 	size_t count = 0;
@@ -121,6 +125,7 @@ size_t countSeparators(const char* string, char separator)
 	return count;
 }
 
+// Allocates memory for split array
 void fillSplitArr(const char* string, char separator, char** splitArr)
 {
 	size_t splitSize = 0, currentIndex = 0;
@@ -140,6 +145,7 @@ void fillSplitArr(const char* string, char separator, char** splitArr)
 	splitArr[currentIndex + 1] = new char;
 }
 
+// Standart splitStr function with marked end of array (-1)
 char** splitStr(const char* string, char separator)
 {
 	if (string == nullptr)
@@ -274,6 +280,8 @@ bool coordinatesToValues(size_t boardSize, char** coordinates, size_t valuesArr[
 	return true;
 }
 
+// Functions for commands
+
 bool moveCommand(GameInfo* gameInfo, char** args)
 {
 	size_t coordinateValuesArr[MOVE_ARGS]{};
@@ -342,6 +350,7 @@ void infoCommand(GameInfo* gameInfo)
 		<< "Defender pieces left: " << defenderPieces << endl;
 }
 
+// Helper function for printing board
 void printBoard(const Board board, size_t size)
 {
 	for (size_t row = 0; row < size; row++)
@@ -365,17 +374,20 @@ void printBoard(const Board board, size_t size)
 	cout << endl;
 }
 
+// Resets GameInfo for new game
 bool newGame(GameInfo* gameInfo, char* arg)
 {
 	size_t newSize = stringToValue(arg);
 	return setGameInfo(gameInfo, newSize);
 }
 
+// Helper function
 void changePlayer(bool& player)
 {
 	player = !player;
 }
 
+// Main game loop
 bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 {
 	char** args = splitStr(split[1], TYPE_SEPARATOR);
@@ -407,6 +419,11 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 			if (splitArrLength(split) == MOVE_ARGS - 1 && moveCommand(gameInfo, split + 1))
 			{
 				changePlayer(gameInfo->player);
+				
+				// Checks one of the game ending conditions but chose to not use it
+				/*if (player && isGameOverCondition(gameInfo->DefendersScore))
+					break;*/
+
 				gameInfo->turn++;
 			}
 			else
@@ -458,6 +475,7 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 	return true;
 }
 
+// Game entry point
 void run()
 {
 	GameInfo* gameInfo = allocateGameInfoMemory();
@@ -485,6 +503,7 @@ void run()
 		cout << endl << endl;
 		deleteSplitString(split);
 	}
+
 	cout << "Closing game...";
 	deleteSplitString(split);
 	deallocateGameInfoMemory(gameInfo);

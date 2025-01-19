@@ -22,6 +22,8 @@
 const size_t ARRAY_SIZE = 4;
 const size_t ENEMY_TYPE_ARRAY_SIZE = 2;
 
+// Position helper functions
+
 Position* createPosition(size_t x, size_t y)
 {
 	Position* pos = new Position;
@@ -34,6 +36,8 @@ void deletePosition(Position* pos)
 {
 	delete pos;
 }
+
+// Helper functions for checking cell types, positions, states
 
 bool isKingOnlyCell(size_t boardSize, size_t row, size_t col)
 {
@@ -107,6 +111,7 @@ bool isMovementInBounds(Board board, size_t size, Position* piece, Position* mov
 	if (rowEqual && colEqual)
 		return false;
 
+	// Variables to store needed coordinates in correct order
 	size_t tmp1, tmp2;
 	if (rowEqual)
 	{
@@ -159,16 +164,17 @@ bool isValidMove(Board board, size_t size, char pieceType, Position* piece, Posi
 
 	switch (pieceType)
 	{
-	case KING:
-	case DEFENDER:
-	case ATTACKER:
-		return !isTakenCell(board, size, move) && !isEnemyCell(board, size, pieceType, move)
-			&& isMovementInBounds(board, size, piece, move, pieceType);
+		case KING:
+		case DEFENDER:
+		case ATTACKER:
+			return !isTakenCell(board, size, move) && !isEnemyCell(board, size, pieceType, move)
+				&& isMovementInBounds(board, size, piece, move, pieceType);
 	}
 
 	return false;
 }
 
+// Helper function to check if surrounding cells are enemies for the given piece
 void fillIsEnemyArr(Board board, size_t size, char pieceType, Position* piece, bool isEnemyArr[ARRAY_SIZE])
 {
 	// row += 1, col += 0
@@ -180,6 +186,7 @@ void fillIsEnemyArr(Board board, size_t size, char pieceType, Position* piece, b
 	// row += 0, col += -1
 	isEnemyArr[3] = isEnemyCell(board, size, pieceType, piece->x, piece->y - 1);
 
+	// Special conditions for King piece only
 	if (pieceType == KING)
 	{
 		bool kingOnlyCellArr[ARRAY_SIZE]{};
@@ -226,12 +233,12 @@ bool isCaptured(Board board, size_t size, char pieceType, Position* piece)
 
 	switch (pieceType)
 	{
-	case ATTACKER:
-	case DEFENDER:
-		return isEnemyArr[0] && isEnemyArr[2] || isEnemyArr[1] && isEnemyArr[3];
+		case ATTACKER:
+		case DEFENDER:
+			return isEnemyArr[0] && isEnemyArr[2] || isEnemyArr[1] && isEnemyArr[3];
 
-	case KING:
-		return isEnemyArr[0] && isEnemyArr[2] && isEnemyArr[1] && isEnemyArr[3];
+		case KING:
+			return isEnemyArr[0] && isEnemyArr[2] && isEnemyArr[1] && isEnemyArr[3];
 	}
 
 	return false;
@@ -277,6 +284,7 @@ bool movePiece(Board board, size_t size, Position* piece, Position* move, char& 
 	return result && changeCell(board, size, piece->x, piece->y, isKingOnly ? END_POINT : EMPTY_SPACE);
 }
 
+// Helper function for filling array with positions of all taken pieces
 bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize,
 	bool isEnemyArr[ARRAY_SIZE], char pieceType, Position* move, bool& isGameOver)
 {
@@ -296,18 +304,18 @@ bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize,
 			Position enemy = *move;
 			switch (i)
 			{
-			case 0:
-				enemy.x += 1;
-				break;
-			case 1:
-				enemy.y += 1;
-				break;
-			case 2:
-				enemy.x -= 1;
-				break;
-			case 3:
-				enemy.y -= 1;
-				break;
+				case 0:
+					enemy.x += 1;
+					break;
+				case 1:
+					enemy.y += 1;
+					break;
+				case 2:
+					enemy.x -= 1;
+					break;
+				case 3:
+					enemy.y -= 1;
+					break;
 			}
 			char enemyType = typeOfCell(board, size, enemy.x, enemy.y);
 			if (isCaptured(board, size, enemyType, &enemy))
@@ -327,6 +335,7 @@ bool fillTakenArr(Board board, size_t size, Position*& taken, size_t takenSize,
 	return true;
 }
 
+// Checks if king has reached a corner of the board
 bool isGameOverCondition(size_t boardSize, Position* move)
 {
 	if (isOutOfBounds(boardSize, move->x, move->y))
@@ -335,27 +344,35 @@ bool isGameOverCondition(size_t boardSize, Position* move)
 	return isCorner(boardSize, move->x, move->y);
 }
 
+// Checks if king is the only one left for defenders
+bool isGameOverCondition(size_t defenderPieces)
+{
+	return defenderPieces == 1;
+}
+
 bool checkEnemieCaptured(const Board board, size_t size, Position* move, size_t location)
 {
 	Position enemy = *move;
 	switch (location)
 	{
-	case 0:
-		enemy.x += 1;
-		break;
-	case 1:
-		enemy.y += 1;
-		break;
-	case 2:
-		enemy.x -= 1;
-		break;
-	case 3:
-		enemy.y -= 1;
-		break;
+		case 0:
+			enemy.x += 1;
+			break;
+		case 1:
+			enemy.y += 1;
+			break;
+		case 2:
+			enemy.x -= 1;
+			break;
+		case 3:
+			enemy.y -= 1;
+			break;
 	}
 	char enemyType = typeOfCell(board, size, enemy.x, enemy.y);
 	return isCaptured(board, size, enemyType, &enemy);
 }
+
+// Functions for command operations
 
 bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move, bool& isGameOver, bool player, size_t& playerScore)
 {

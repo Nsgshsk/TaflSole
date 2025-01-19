@@ -35,6 +35,7 @@ void deallocateBoardMemory(Board board, size_t size)
 	delete[] board;
 }
 
+// Checks attacker starting positions depending on type
 bool isAttackersStartingPosition(size_t boardSize, size_t row, size_t col)
 {
 	size_t middle = boardSize / 2;
@@ -54,6 +55,7 @@ bool isAttackersStartingPosition(size_t boardSize, size_t row, size_t col)
 	return false;
 }
 
+// Checks defender starting positions depending on type
 bool isDefendersStartingPosition(size_t boardSize, size_t row, size_t col)
 {
 	size_t middle = boardSize / 2;
@@ -139,6 +141,8 @@ bool initializeBoard(Board board, size_t size)
 	return true;
 }
 
+// Wrapper functions for basic board operations
+
 bool newBoard(Board& board, size_t oldSize, size_t newSize)
 {
 	if (board != nullptr)
@@ -153,6 +157,8 @@ void closeBoard(Board board, size_t size)
 	if (board != nullptr)
 		deallocateBoardMemory(board, size);
 }
+
+// Board manipulation helper functions
 
 bool changeCell(Board board, size_t size, size_t row, size_t col, char cellType)
 {

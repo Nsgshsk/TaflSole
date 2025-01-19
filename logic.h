@@ -35,3 +35,5 @@ void deallocateHistoryStackMemory(HistoryStack& history);
 bool moveOperation(HistoryStack& history, Board board, size_t size, Position* piece, Position* move, bool& isGameOver, bool player, size_t& playerScore);
 
 bool backOperation(HistoryStack& history, Board board, size_t size, bool player, size_t& playerScore);
+
+bool isGameOverCondition(size_t defenderPieces);
