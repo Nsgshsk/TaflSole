@@ -332,14 +332,13 @@ void infoCommand(GameInfo* gameInfo)
 			defenderPieces = BIG_DEFENDER - gameInfo->AttackersScore;
 			break;
 		default:
-			cout << "How did we get here? :O";
+			cout << "Achievement unlocked: How did we get here? :O\n";
 			return;
 	}
 
 	pieces -= gameInfo->AttackersScore + gameInfo->DefendersScore;
 
-	cout << endl 
-		<< "Game Info" << endl
+	cout << "Game Info" << endl
 		<< "----------" << endl
 		<< "Turn: " << gameInfo->turn << endl
 		<< endl
@@ -388,6 +387,13 @@ void changePlayer(bool& player)
 	player = !player;
 }
 
+// Clears console using ANSI escape codes it may not be supported by some consoles or OS-es
+void clear()
+{
+	// CSI[2J clears screen, CSI[H moves the cursor to top-left corner
+	std::cout << "\x1B[2J\x1B[H";
+}
+
 // Main game loop
 bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 {
@@ -398,14 +404,11 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 	if (!newGame(gameInfo, args[0]))
 		return false;
 
-	// For stylish reason
-	cout << endl;
-
 	uint8_t invalidTries = 0;
 	while (!gameInfo->isGameOver)
 	{
 		printBoard(gameInfo->board, gameInfo->boardSize);
-		cout << (!gameInfo->player ? "Attackers" : "Defenders") << " turn" << PROMT_MESSAGE;
+		cout << endl << (!gameInfo->player ? "Attackers" : "Defenders") << " turn" << PROMT_MESSAGE;
 
 		cin.getline(input, INPUT_ARRAY_SIZE);
 		split = splitStr(input, ARGUMENT_SEPARATOR);
@@ -416,9 +419,10 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 			cin.getline(input, INPUT_ARRAY_SIZE);
 			if (compareString(input, "Y") || compareString(input, "y"))
 				break;
+			clear();
 			cout << CANCEL_MESSAGE;
 		}
-		else if (compareString(split[0], MOVE) || compareString(split[0], MOVE_SMALL))
+		else if (clear(), compareString(split[0], MOVE) || compareString(split[0], MOVE_SMALL))
 		{
 			if (splitArrLength(split) == MOVE_ARGS - 1 && moveCommand(gameInfo, split + 1))
 			{
@@ -429,6 +433,9 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 					break;*/
 
 				gameInfo->turn++;
+
+				deleteSplitString(split);
+				continue;
 			}
 			else
 			{
@@ -442,6 +449,9 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 			{
 				changePlayer(gameInfo->player);
 				gameInfo->turn--;
+
+				deleteSplitString(split);
+				continue;
 			}
 			else
 			{
@@ -453,7 +463,7 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 			infoCommand(gameInfo);
 		else if (compareString(split[0], HELP) || compareString(split[0], HELP_SMALL))
 		{
-			cout << endl << HELP_MESSAGE;
+			cout << HELP_MESSAGE;
 			invalidTries = 0;
 		}
 		else
@@ -472,7 +482,7 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 		deleteSplitString(split);
 	}
 
-	cout << endl;
+	clear();
 	printBoard(gameInfo->board, gameInfo->boardSize);
 	cout << (!gameInfo->player ? "Defenders" : "Attackers") << " wins.\n";
 
@@ -492,6 +502,8 @@ void run()
 		cin.getline(input, INPUT_ARRAY_SIZE);
 		split = splitStr(input, ARGUMENT_SEPARATOR);
 
+		clear();
+
 		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
 			break;
 		else if (compareString(split[0], NEW_GAME) || compareString(split[0], NEW_GAME_SMALL))
@@ -508,7 +520,7 @@ void run()
 		deleteSplitString(split);
 	}
 
-	cout << endl << "Closing game...";
+	cout << "Closing game...";
 	deleteSplitString(split);
 	deallocateGameInfoMemory(gameInfo);
 }
