@@ -145,7 +145,7 @@ void fillSplitArr(const char* string, char separator, char** splitArr)
 	splitArr[currentIndex + 1] = new char;
 }
 
-// Standart splitStr function with marked end of array (-1)
+// Standard splitStr function with marked end of array (-1)
 char** splitStr(const char* string, char separator)
 {
 	if (string == nullptr)
@@ -312,6 +312,7 @@ bool backCommand(GameInfo* gameInfo)
 
 void infoCommand(GameInfo* gameInfo)
 {
+	// Gets needed piece count depending on board type
 	size_t pieces = 0, attackerPieces = 0, defenderPieces = 0;
 	switch (gameInfo->boardSize)
 	{
@@ -423,7 +424,7 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 			{
 				changePlayer(gameInfo->player);
 				
-				// Checks one of the game ending conditions but chose to not use it
+				// Checks one of the game ending conditions but chose not to use it
 				/*if (player && isGameOverCondition(gameInfo->DefendersScore))
 					break;*/
 

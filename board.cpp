@@ -35,7 +35,7 @@ void deallocateBoardMemory(Board board, size_t size)
 	delete[] board;
 }
 
-// Checks attacker starting positions depending on type
+// Checks attacker starting positions depending on board type
 bool isAttackersStartingPosition(size_t boardSize, size_t row, size_t col)
 {
 	size_t middle = boardSize / 2;
@@ -55,7 +55,7 @@ bool isAttackersStartingPosition(size_t boardSize, size_t row, size_t col)
 	return false;
 }
 
-// Checks defender starting positions depending on type
+// Checks defender starting positions depending on board type
 bool isDefendersStartingPosition(size_t boardSize, size_t row, size_t col)
 {
 	size_t middle = boardSize / 2;

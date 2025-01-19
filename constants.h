@@ -15,6 +15,7 @@
 
 #pragma once
 
+// Three types of Tafl boards
 enum BoardSizes
 {
 	SMALL = 9,
@@ -22,16 +23,20 @@ enum BoardSizes
 	BIG = 13
 };
 
+// Number of pieces depending on board type
 enum BoardPieces
 {
 	SMALL_ATTACKER = 16,
 	SMALL_DEFENDER = 8,
+
 	MEDIUM_ATTACKER = 24,
 	MEDIUM_DEFENDER = 13,
+
 	BIG_ATTACKER = 32,
 	BIG_DEFENDER = 13,
 };
 
+// UI board elements
 enum BoardCellTypes
 {
 	EMPTY_SPACE = '-',

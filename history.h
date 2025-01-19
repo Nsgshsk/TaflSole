@@ -15,6 +15,7 @@
 
 #pragma once
 
+// Stores board coordinates (row, col)
 struct Position
 {
 	size_t x, y;
