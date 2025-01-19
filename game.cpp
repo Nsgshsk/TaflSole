@@ -408,7 +408,7 @@ bool game(GameInfo* gameInfo, char input[INPUT_ARRAY_SIZE], char** split)
 
 		if (compareString(split[0], QUIT) || compareString(split[0], QUIT_SMALL))
 		{
-			cout << CONFIRMATION_MESSAGE;
+			cout << endl << CONFIRMATION_MESSAGE;
 			cin.getline(input, INPUT_ARRAY_SIZE);
 			if (compareString(input, "Y") || compareString(input, "y"))
 				break;
@@ -494,7 +494,9 @@ void run()
 			break;
 		else if (compareString(split[0], NEW_GAME) || compareString(split[0], NEW_GAME_SMALL))
 		{
-			if (splitArrLength(split) == 2 && !game(gameInfo, input, split))
+			if (splitArrLength(split) != 2)
+				cout << ERROR_MESSAGE;
+			else if (!game(gameInfo, input, split))
 				cout << TYPE_NOT_RECOGNIZED;
 		}
 		else
