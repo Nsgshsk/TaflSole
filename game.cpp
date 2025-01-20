@@ -31,8 +31,8 @@ const char TYPE_SEPARATOR = 'x';
 const size_t MOVE_ARGS = 4;
 
 // Message strings
-const char* MENU_MESSAGE = "Menu\n-------\n1) NewGame <board type>\nBoard types: 9x9, 11x11, 13x13\n2) Quit\n";
-const char* HELP_MESSAGE = "Help\n-------\n1) Move <from_coordinates> <to_coordinates>\n2) Back\n3) Info\n4) Quit";
+const char* MENU_MESSAGE = "Menu\n-------\n ) Newgame <board type>\nBoard types: 9x9, 11x11, 13x13\n ) Quit\n";
+const char* HELP_MESSAGE = "Help\n-------\n ) Move <from_coordinates> <to_coordinates>\n ) Back\n ) Info\n ) Quit";
 const char* CONFIRMATION_MESSAGE = "You will lose the game by quiting!\nAre you sure? (Y\\N) ";
 const char* PROMT_MESSAGE = "> ";
 const char* COMMAND_NOT_RECOGNIZED = "Command isn't recognized!";
